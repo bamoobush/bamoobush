@@ -152,6 +152,86 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
 /* TOAST */
 .toast{position:fixed;bottom:2rem;right:2rem;z-index:999;background:var(--green);color:var(--cream);padding:0.9rem 1.5rem;border-radius:4px;font-size:0.87rem;border-left:3px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,0.25);transform:translateX(130%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)}
 .toast.show{transform:translateX(0)}
+  /* CART DRAWER */
+.cart-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    display: none;
+    backdrop-filter: blur(4px);
+}
+.cart-drawer {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Hidden by default */
+    width: 400px;
+    height: 100%;
+    background: var(--cream2);
+    z-index: 301;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+}
+.cart-drawer.open { right: 0; }
+.cart-header {
+    padding: 1.5rem;
+    background: var(--green);
+    color: var(--cream);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.close-cart { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+
+#cartItems {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+.cart-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    align-items: center;
+}
+.cart-item-info { flex: 1; }
+.cart-item-info h4 { font-family: 'Cormorant Garamond', serif; color: var(--green); }
+.remove-btn { 
+    background: none; border: none; color: #a00; font-size: 0.7rem; 
+    cursor: pointer; text-transform: uppercase; margin-top: 5px; 
+}
+
+.cart-footer {
+    padding: 1.5rem;
+    background: white;
+    border-top: 1px solid #ddd;
+}
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+.checkout-btn {
+    width: 100%;
+    background: var(--gold);
+    color: white;
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+/* Empty Cart State */
+.empty-msg { text-align: center; color: var(--muted); margin-top: 3rem; }
+
+@media(max-width: 450px) { .cart-drawer { width: 100%; } }
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -172,37 +252,77 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
 </style>
 </head>
 <script>
-
 let cart = [];
 
-function addToCart(product, price){
-
-cart.push({product,price});
-
-document.getElementById("cartNum").innerText = cart.length;
-
-alert(product + " added to cart");
-
+function addToCart(name, price) {
+    // 1. Check if item already exists to increment quantity
+    const existingItem = cart.find(item => item.name === name);
+    
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        // New item object
+        cart.push({ name: name, price: price, quantity: 1 });
+    }
+    
+    updateUI();
+    openCart(); // Automatically slides the cart open like Amazon/Flipkart
 }
 
-function openCart(){
-
-document.getElementById("cartPage").style.display="block";
-
-let list="";
-
-let total=0;
-
-cart.forEach(item=>{
-list+=`<p>${item.product} - ₹${item.price}</p>`;
-total+=item.price;
-});
-
-document.getElementById("cartItems").innerHTML=list;
-document.getElementById("totalPrice").innerText="₹"+total;
-
+function removeFromCart(name) {
+    // Filter out the item by name
+    cart = cart.filter(item => item.name !== name);
+    updateUI();
 }
 
+function updateUI() {
+    const cartNum = document.getElementById("cartNum");
+    const cartItems = document.getElementById("cartItems");
+    const totalPrice = document.getElementById("totalPrice");
+    
+    // Update the bubble count in the Nav
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartNum.innerText = totalCount;
+
+    // Render the items inside the drawer
+    if (cart.length === 0) {
+        cartItems.innerHTML = `
+            <div class="empty-msg" style="text-align:center; padding: 2rem; color: #6b7c65;">
+                <p>Your nature kit is empty.</p>
+                <br>
+                <button class="btn-ghost" onclick="closeCart()" style="color: #1a4a2e; border-color: #1a4a2e;">Continue Shopping</button>
+            </div>`;
+        totalPrice.innerText = "₹0";
+    } else {
+        let html = "";
+        let total = 0;
+        cart.forEach(item => {
+            html += `
+                <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
+                    <div>
+                        <h4 style="font-family:'Cormorant Garamond', serif; color:#1a4a2e; margin:0;">${item.name}</h4>
+                        <p style="font-size:0.8rem; margin:4px 0;">₹${item.price} x ${item.quantity}</p>
+                        <button onclick="removeFromCart('${item.name}')" style="background:none; border:none; color:red; font-size:0.7rem; cursor:pointer; text-transform:uppercase; padding:0;">Remove</button>
+                    </div>
+                    <div style="font-weight:600;">₹${item.price * item.quantity}</div>
+                </div>
+            `;
+            total += (item.price * item.quantity);
+        });
+        cartItems.innerHTML = html;
+        totalPrice.innerText = "₹" + total;
+    }
+}
+
+function openCart() {
+    document.getElementById("cartOverlay").style.display = "block";
+    document.getElementById("cartDrawer").classList.add("open");
+}
+
+function closeCart() {
+    document.getElementById("cartOverlay").style.display = "none";
+    document.getElementById("cartDrawer").classList.remove("open");
+}
 </script>
 <body>
 
@@ -576,5 +696,23 @@ cart:cart
 }
 
 </script>
+  <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+        <h3>Your Nature Kit</h3>
+        <button class="close-cart" onclick="closeCart()">×</button>
+    </div>
+    
+    <div id="cartItems">
+        </div>
+
+    <div class="cart-footer">
+        <div class="total-row">
+            <span>Subtotal</span>
+            <span id="totalPrice">₹0</span>
+        </div>
+        <button class="checkout-btn">Proceed to Checkout</button>
+    </div>
+</div>
 </body>
 </html>
