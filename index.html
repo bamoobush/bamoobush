@@ -254,43 +254,41 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
 <script>
 let cart = [];
 
+// This function adds items and AUTOMATICALLY opens the drawer
 function addToCart(name, price) {
-    // 1. Check if item already exists to increment quantity
     const existingItem = cart.find(item => item.name === name);
     
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        // New item object
         cart.push({ name: name, price: price, quantity: 1 });
     }
     
     updateUI();
-    openCart(); // Automatically slides the cart open like Amazon/Flipkart
+    openCart(); // This makes it slide out immediately like Flipkart/Amazon
 }
 
+// Function to remove a specific item
 function removeFromCart(name) {
-    // Filter out the item by name
     cart = cart.filter(item => item.name !== name);
     updateUI();
 }
 
+// This handles the visual update of the cart drawer
 function updateUI() {
     const cartNum = document.getElementById("cartNum");
     const cartItems = document.getElementById("cartItems");
     const totalPrice = document.getElementById("totalPrice");
     
-    // Update the bubble count in the Nav
     const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartNum.innerText = totalCount;
 
-    // Render the items inside the drawer
     if (cart.length === 0) {
         cartItems.innerHTML = `
-            <div class="empty-msg" style="text-align:center; padding: 2rem; color: #6b7c65;">
+            <div class="empty-msg">
                 <p>Your nature kit is empty.</p>
                 <br>
-                <button class="btn-ghost" onclick="closeCart()" style="color: #1a4a2e; border-color: #1a4a2e;">Continue Shopping</button>
+                <button class="btn-ghost" onclick="closeCart()" style="color: var(--green); border-color: var(--green);">Continue Shopping</button>
             </div>`;
         totalPrice.innerText = "₹0";
     } else {
@@ -298,13 +296,13 @@ function updateUI() {
         let total = 0;
         cart.forEach(item => {
             html += `
-                <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; border-bottom:1px solid #eee; padding-bottom:1rem;">
-                    <div>
-                        <h4 style="font-family:'Cormorant Garamond', serif; color:#1a4a2e; margin:0;">${item.name}</h4>
-                        <p style="font-size:0.8rem; margin:4px 0;">₹${item.price} x ${item.quantity}</p>
-                        <button onclick="removeFromCart('${item.name}')" style="background:none; border:none; color:red; font-size:0.7rem; cursor:pointer; text-transform:uppercase; padding:0;">Remove</button>
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <p>₹${item.price} x ${item.quantity}</p>
+                        <button class="remove-btn" onclick="removeFromCart('${item.name}')">Remove</button>
                     </div>
-                    <div style="font-weight:600;">₹${item.price * item.quantity}</div>
+                    <div style="font-weight:600; color: var(--green);">₹${item.price * item.quantity}</div>
                 </div>
             `;
             total += (item.price * item.quantity);
@@ -314,6 +312,7 @@ function updateUI() {
     }
 }
 
+// Control the CSS classes to slide the drawer in/out
 function openCart() {
     document.getElementById("cartOverlay").style.display = "block";
     document.getElementById("cartDrawer").classList.add("open");
