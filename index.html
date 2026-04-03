@@ -171,6 +171,39 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
 }
 </style>
 </head>
+<script>
+
+let cart = [];
+
+function addToCart(product, price){
+
+cart.push({product,price});
+
+document.getElementById("cartNum").innerText = cart.length;
+
+alert(product + " added to cart");
+
+}
+
+function openCart(){
+
+document.getElementById("cartPage").style.display="block";
+
+let list="";
+
+let total=0;
+
+cart.forEach(item=>{
+list+=`<p>${item.product} - ₹${item.price}</p>`;
+total+=item.price;
+});
+
+document.getElementById("cartItems").innerHTML=list;
+document.getElementById("totalPrice").innerText="₹"+total;
+
+}
+
+</script>
 <body>
 
 <!-- NAV -->
@@ -273,7 +306,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
         <div class="prod-stars">★★★★★ <span>(128 reviews)</span></div>
         <div class="prod-footer">
           <div class="prod-price">₹220</div>
-          <button class="add-cart" onclick="addToCart('Finger Detangler')">Add to Cart</button>
+          <button class="add-cart" onclick="addToCart('Finger Detangular',220)">Add to Cart</button>
         </div>
       </div>
     </div>
@@ -291,7 +324,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
         <div class="prod-stars">★★★★★ <span>(94 reviews)</span></div>
         <div class="prod-footer">
           <div class="prod-price">₹199</div>
-          <button class="add-cart" onclick="addToCart('Long Handle Comb')">Add to Cart</button>
+          <button class="add-cart" onclick="addToCart('Smooth Glider',199)">Add to Cart</button>
         </div>
       </div>
     </div>
@@ -309,7 +342,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
         <div class="prod-stars">★★★★★ <span>(76 reviews)</span></div>
         <div class="prod-footer">
           <div class="prod-price">₹149</div>
-          <button class="add-cart" onclick="addToCart('Half-Moon Pocket Comb')">Add to Cart</button>
+          <button class="add-cart" onclick="addToCart('Beard Comb',149)">Add to Cart</button>
         </div>
       </div>
     </div>
@@ -327,7 +360,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
         <div class="prod-stars">★★★★★ <span>(112 reviews)</span></div>
         <div class="prod-footer">
           <div class="prod-price">₹199</div>
-          <button class="add-cart" onclick="addToCart('Fine-Tooth Comb')">Add to Cart</button>
+          <button class="add-cart" onclick="addToCart('Fine Tooth Comb',199)">Add to Cart</button>
         </div>
       </div>
     </div>
@@ -445,6 +478,23 @@ footer{background:#0a1f10;color:rgba(240,235,224,0.5);padding:4rem 3rem 2rem}
     <span>Made with 🌿 in India &nbsp;|&nbsp; <a href="#">Privacy</a> · <a href="#">Terms</a></span>
   </div>
 </footer>
+  <div id="cartPage" style="display:none;padding:40px;background:#fff">
+
+<h2>Your Cart</h2>
+
+<div id="cartItems"></div>
+
+<h3>Total: <span id="totalPrice"></span></h3>
+
+<h3>Shipping Details</h3>
+
+<input id="name" placeholder="Name"><br><br>
+<input id="phone" placeholder="Phone"><br><br>
+<textarea id="address" placeholder="Address"></textarea><br><br>
+
+<button id="pay-btn">Pay Now</button>
+
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -462,6 +512,69 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+</script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+document.getElementById('pay-btn').onclick = function(){
+
+let total=0;
+
+cart.forEach(item=> total+=item.price);
+
+var options = {
+
+key: "YOUR_RAZORPAY_KEY",
+
+amount: total*100,
+
+currency: "INR",
+
+name: "Bamoobush",
+
+description: "Bamboo Comb Order",
+
+handler: function (response){
+
+alert("Payment Successful!");
+
+sendOrder();
+
+}
+
+};
+
+var rzp = new Razorpay(options);
+
+rzp.open();
+
+}
+
+function sendOrder(){
+
+fetch("https://formspree.io/f/YOUR_FORM_ID",{
+
+method:"POST",
+
+headers:{'Content-Type':'application/json'},
+
+body:JSON.stringify({
+
+name:document.getElementById("name").value,
+
+phone:document.getElementById("phone").value,
+
+address:document.getElementById("address").value,
+
+cart:cart
+
+})
+
+});
+
+}
+
 </script>
 </body>
 </html>
