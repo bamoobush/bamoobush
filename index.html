@@ -200,12 +200,58 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
 .success-block .success-icon{font-size:4rem;margin-bottom:1rem}
 .success-block h3{font-family:'Cormorant Garamond',serif;color:var(--green);font-size:1.8rem;margin-bottom:.5rem}
 .success-block p{color:var(--muted);line-height:1.6}
-/* UPI SECTION */
-.upi-info-block{background:var(--cream);border:1px solid rgba(0,0,0,.08);border-radius:8px;padding:1.2rem;margin-top:.8rem;text-align:center}
-.upi-id-display{font-size:1.1rem;font-weight:700;color:var(--green);letter-spacing:.05em;margin:.5rem 0}
-.upi-info-block p{font-size:.8rem;color:var(--muted);line-height:1.5}
-.upi-apps{display:flex;justify-content:center;gap:.8rem;margin-top:.7rem;flex-wrap:wrap}
-.upi-app-tag{background:var(--green);color:white;border-radius:20px;padding:.2rem .75rem;font-size:.7rem;font-weight:500}
+/* UPI SECTION — Amazon/Zepto style */
+.upi-section-wrap{margin-top:.8rem}
+.upi-step{display:none}
+.upi-step.active{display:block}
+
+/* App picker grid */
+.upi-apps-label{font-size:.78rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.upi-app-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin-bottom:1rem}
+.upi-app-btn{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.85rem .5rem;border:2px solid #e8e2d6;border-radius:12px;background:white;cursor:pointer;transition:all .2s;position:relative;font-family:'Jost',sans-serif}
+.upi-app-btn:hover{border-color:var(--green);box-shadow:0 4px 16px rgba(26,74,46,.12);transform:translateY(-2px)}
+.upi-app-btn.selected{border-color:var(--green);background:#f0f7f2;box-shadow:0 4px 16px rgba(26,74,46,.15)}
+.upi-app-btn.selected::after{content:'✓';position:absolute;top:6px;right:8px;font-size:.65rem;background:var(--green);color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.upi-app-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.upi-app-name{font-size:.72rem;font-weight:600;color:var(--text);text-align:center;line-height:1.2}
+
+/* UPI ID manual entry */
+.upi-divider{display:flex;align-items:center;gap:.7rem;margin:.8rem 0;color:var(--muted);font-size:.78rem}
+.upi-divider::before,.upi-divider::after{content:'';flex:1;height:1px;background:#e0d8cc}
+.upi-id-input-wrap{display:flex;gap:.5rem;align-items:flex-end}
+.upi-id-input-wrap input{flex:1;padding:.72rem 1rem;border:2px solid #e8e2d6;border-radius:8px;font-size:.9rem;font-family:'Jost',sans-serif;outline:none;transition:border-color .2s}
+.upi-id-input-wrap input:focus{border-color:var(--green)}
+.upi-id-input-wrap input::placeholder{color:#bbb}
+.btn-upi-verify{background:var(--green);color:white;border:none;border-radius:8px;padding:.72rem 1.2rem;font-size:.82rem;font-family:'Jost',sans-serif;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s}
+.btn-upi-verify:hover{background:var(--green-mid)}
+
+/* Pay now button */
+.btn-pay-now{width:100%;background:linear-gradient(135deg,#1a4a2e,#2d6e46);color:white;border:none;border-radius:10px;padding:1.1rem;font-size:.95rem;font-weight:700;letter-spacing:.05em;cursor:pointer;font-family:'Jost',sans-serif;transition:all .2s;margin-top:.9rem;display:flex;align-items:center;justify-content:center;gap:.6rem;box-shadow:0 4px 16px rgba(26,74,46,.3)}
+.btn-pay-now:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(26,74,46,.4)}
+.btn-pay-now:disabled{background:#ccc;box-shadow:none;transform:none;cursor:not-allowed}
+
+/* Payment awaiting confirmation screen */
+.upi-awaiting{background:linear-gradient(135deg,#f0f7f2,#e8f4ec);border:2px solid rgba(26,74,46,.15);border-radius:12px;padding:1.5rem;text-align:center}
+.upi-awaiting .await-icon{font-size:3rem;margin-bottom:.6rem;animation:pulse-icon 1.5s ease-in-out infinite}
+@keyframes pulse-icon{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.upi-awaiting h4{font-family:'Cormorant Garamond',serif;color:var(--green);font-size:1.3rem;margin-bottom:.3rem}
+.upi-awaiting .await-amount{font-size:1.5rem;font-weight:800;color:var(--green);margin:.4rem 0;letter-spacing:.02em}
+.upi-awaiting .await-upi{font-size:.82rem;color:var(--muted);margin-bottom:.9rem}
+.await-app-badge{display:inline-flex;align-items:center;gap:.4rem;background:white;border:1px solid rgba(26,74,46,.2);border-radius:20px;padding:.3rem .9rem;font-size:.78rem;font-weight:600;color:var(--green);margin-bottom:1rem}
+.btn-open-app{width:100%;background:var(--gold);color:white;border:none;border-radius:10px;padding:.95rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;transition:all .2s;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.5rem;box-shadow:0 4px 14px rgba(184,146,42,.35)}
+.btn-open-app:hover{background:var(--gold-light);transform:translateY(-1px)}
+.btn-paid-confirm{width:100%;background:var(--green);color:white;border:none;border-radius:10px;padding:.95rem;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn-paid-confirm:hover{background:var(--green-mid)}
+.await-timer{font-size:.75rem;color:var(--muted);margin-top:.6rem}
+.btn-try-another{background:none;border:none;color:var(--muted);font-size:.78rem;cursor:pointer;font-family:'Jost',sans-serif;text-decoration:underline;margin-top:.5rem;display:block;width:100%;text-align:center}
+
+/* QR code section */
+.upi-qr-wrap{background:var(--cream);border-radius:10px;padding:1rem;text-align:center;margin-top:.8rem}
+.upi-qr-wrap .qr-label{font-size:.75rem;color:var(--muted);margin-top:.5rem}
+.upi-id-display{font-size:1rem;font-weight:700;color:var(--green);letter-spacing:.05em;margin:.5rem 0;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.copy-upi-btn{background:none;border:1px solid rgba(26,74,46,.25);border-radius:4px;padding:.15rem .5rem;font-size:.68rem;color:var(--green);cursor:pointer;font-family:'Jost',sans-serif;transition:all .15s}
+.copy-upi-btn:hover{background:var(--green);color:white}
+.upi-info-block{display:none} /* hide old style */
 #qrCodeBox{margin:1rem auto 0;display:flex;flex-direction:column;align-items:center;gap:.5rem}
 #qrCodeBox canvas{border-radius:8px;border:3px solid var(--cream);box-shadow:0 4px 16px rgba(0,0,0,.12)}
 .qr-label{font-size:.75rem;color:var(--muted);text-align:center}
@@ -517,16 +563,98 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
           <option value="bank">Bank Transfer (NEFT/IMPS)</option>
         </select>
       </div>
-      <!-- UPI QR -->
+      <!-- UPI PAYMENT — Amazon/Zepto Style -->
       <div id="upiSection" style="display:none">
-        <div class="upi-info-block">
-          <p style="font-size:.8rem;color:var(--muted);margin-bottom:.3rem">Scan QR or pay to UPI ID:</p>
-          <div class="upi-id-display">📱 abrahamhin19-1@oksbi</div>
-          <div id="qrCodeBox"><canvas id="qrCanvas"></canvas><p class="qr-label">Scan with GPay / PhonePe / Paytm / BHIM</p></div>
-          <div class="upi-apps"><span class="upi-app-tag">GPay</span><span class="upi-app-tag">PhonePe</span><span class="upi-app-tag">Paytm</span><span class="upi-app-tag">BHIM</span></div>
-          <p style="font-size:.75rem;color:var(--muted);margin-top:.6rem">After paying, enter your transaction ID below.</p>
+        <div class="upi-section-wrap">
+          <!-- STEP 1: App picker -->
+          <div class="upi-step active" id="upiStep1">
+            <div class="upi-apps-label">Pay using UPI App</div>
+            <div class="upi-app-grid">
+              <button class="upi-app-btn" onclick="selectUPIApp('gpay')" id="upiAppGpay">
+                <div class="upi-app-icon" style="background:linear-gradient(135deg,#4285F4,#34A853,#FBBC05,#EA4335)">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9V8h2v9zm4 0h-2V8h2v9z"/></svg>
+                </div>
+                <span class="upi-app-name">Google Pay</span>
+              </button>
+              <button class="upi-app-btn" onclick="selectUPIApp('phonepe')" id="upiAppPhonepe">
+                <div class="upi-app-icon" style="background:#5f259f">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 7.5l-2 6-2.5-4-2.5 4-2-6h9z"/></svg>
+                </div>
+                <span class="upi-app-name">PhonePe</span>
+              </button>
+              <button class="upi-app-btn" onclick="selectUPIApp('paytm')" id="upiAppPaytm">
+                <div class="upi-app-icon" style="background:#00b9f1">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                </div>
+                <span class="upi-app-name">Paytm</span>
+              </button>
+              <button class="upi-app-btn" onclick="selectUPIApp('bhim')" id="upiAppBhim">
+                <div class="upi-app-icon" style="background:linear-gradient(135deg,#1a3fa0,#f97316)">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                </div>
+                <span class="upi-app-name">BHIM</span>
+              </button>
+              <button class="upi-app-btn" onclick="selectUPIApp('amazonpay')" id="upiAppAmazonpay">
+                <div class="upi-app-icon" style="background:#FF9900">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                </div>
+                <span class="upi-app-name">Amazon Pay</span>
+              </button>
+              <button class="upi-app-btn" onclick="selectUPIApp('qr')" id="upiAppQr">
+                <div class="upi-app-icon" style="background:var(--green)">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M3 3h7v7H3zm2 2v3h3V5zm7-2h7v7h-7zm2 2v3h3V5zM3 13h7v7H3zm2 2v3h3v-3zm11 0h2v2h-2zm-2-2h2v2h-2zm2 2h2v2h2v2h-2v2h-2v-2h-2v-2h2zm0 4v-2h2v2z"/></svg>
+                </div>
+                <span class="upi-app-name">Scan QR</span>
+              </button>
+            </div>
+
+            <!-- Manual UPI ID entry -->
+            <div class="upi-divider">or enter UPI ID</div>
+            <div class="upi-id-input-wrap">
+              <input type="text" id="manualUpiId" placeholder="yourname@upi / phone@okaxis" autocomplete="off"/>
+              <button class="btn-upi-verify" onclick="useManualUPI()">Use</button>
+            </div>
+
+            <!-- QR code (shown when Scan QR selected) -->
+            <div id="upiQRSection" style="display:none">
+              <div class="upi-qr-wrap">
+                <div id="qrCodeBox"></div>
+                <div class="upi-id-display">
+                  📱 abrahamhin19-1@oksbi
+                  <button class="copy-upi-btn" onclick="copyUPIId()">Copy</button>
+                </div>
+                <div class="qr-label">Scan with any UPI app · Amount auto-filled</div>
+              </div>
+            </div>
+
+            <button class="btn-pay-now" id="btnProceedToPay" onclick="proceedToPay()" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Proceed to Pay ₹<span id="upiPayAmount">0</span>
+            </button>
+          </div>
+
+          <!-- STEP 2: Awaiting payment confirmation -->
+          <div class="upi-step" id="upiStep2">
+            <div class="upi-awaiting">
+              <div class="await-icon" id="awaitIcon">📲</div>
+              <h4>Complete Payment</h4>
+              <div class="await-amount" id="awaitAmount">₹0</div>
+              <div class="await-upi">Pay to: <strong>abrahamhin19-1@oksbi</strong> (BAMOOBUSH)</div>
+              <div class="await-app-badge" id="awaitAppBadge">📱 UPI App</div>
+
+              <button class="btn-open-app" id="btnOpenApp" onclick="openUPIApp()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Open <span id="openAppName">UPI App</span> to Pay
+              </button>
+
+              <button class="btn-paid-confirm" onclick="confirmPaymentDone()">
+                ✓ I've Completed the Payment
+              </button>
+              <div class="await-timer" id="awaitTimerText">Waiting for payment confirmation…</div>
+              <button class="btn-try-another" onclick="goBackToAppPicker()">← Try another payment method</button>
+            </div>
+          </div>
         </div>
-        <div class="form-group" style="margin-top:.8rem"><label>UPI Transaction ID *</label><input type="text" id="cUPIRef" placeholder="e.g. 312456789012"/></div>
       </div>
       <!-- BANK -->
       <div id="bankSection" style="display:none">
@@ -543,6 +671,11 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
         </div>
         <div class="form-group" style="margin-top:.8rem"><label>Bank Transaction Reference Number</label><input type="text" id="cBankRef" placeholder="e.g. SBIN123456789"/></div>
       </div>
+      <!-- Payment confirmation notice (shown after UPI payment confirmed) -->
+      <div id="paymentConfirmedNotice" style="display:none;background:#d1e7dd;border:1px solid #badbcc;border-radius:8px;padding:.8rem 1rem;margin-top:.8rem;font-size:.84rem;color:#0f5132;font-weight:600;display:none;align-items:center;gap:.5rem">
+        ✅ Payment confirmed! Please click Place Order to complete.
+      </div>
+      <input type="hidden" id="cUPIRef" value=""/>
       <button class="place-order-btn" onclick="placeOrder()" id="placeOrderBtn">🌿 Place Order</button>
     </div>
   </div>
@@ -828,24 +961,148 @@ function refreshCheckoutTotal(){
 }
 function handlePaymentChange(){
   const val=document.getElementById('cPayment').value;
-  document.getElementById('upiSection').style.display=val==='upi'?'':'none';
-  document.getElementById('bankSection').style.display=val==='bank'?'':'none';
-  if(val==='upi') generateQR();
+  document.getElementById('upiSection').style.display=val==='upi'?'block':'none';
+  document.getElementById('bankSection').style.display=val==='bank'?'block':'none';
+  // Reset UPI state when switching
+  if(val==='upi'){
+    resetUPIFlow();
+    updateUPIAmount();
+  }
+  // Reset payment gating
+  document.getElementById('placeOrderBtn').disabled=val==='upi';
+  if(val==='bank') document.getElementById('placeOrderBtn').disabled=false;
+  const notice=document.getElementById('paymentConfirmedNotice');
+  if(notice) notice.style.display='none';
 }
+
+// ═══════════════════════════════════
+//  UPI APP PICKER STATE
+// ═══════════════════════════════════
+let selectedUPIApp=null, upiPaymentConfirmed=false;
+const UPI_APP_META={
+  gpay:   {name:'Google Pay',  emoji:'🟢', scheme:'gpay://upi/pay',     deeplink:(id,amt,name,note)=>`gpay://upi/pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`},
+  phonepe:{name:'PhonePe',     emoji:'🟣', scheme:'phonepe://pay',       deeplink:(id,amt,name,note)=>`phonepe://pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`},
+  paytm:  {name:'Paytm',      emoji:'🔵', scheme:'paytmmp://upi/pay',   deeplink:(id,amt,name,note)=>`paytmmp://upi/pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`},
+  bhim:   {name:'BHIM',       emoji:'🇮🇳', scheme:'bhim://upi/pay',      deeplink:(id,amt,name,note)=>`upi://pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`},
+  amazonpay:{name:'Amazon Pay',emoji:'🟠', scheme:'amazonshopping://upi',deeplink:(id,amt,name,note)=>`upi://pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`},
+  qr:     {name:'Scan QR',    emoji:'📷', scheme:'',                     deeplink:null},
+  manual: {name:'UPI ID',     emoji:'📱', scheme:'',                     deeplink:(id,amt,name,note)=>`upi://pay?pa=${id}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`}
+};
+
+function updateUPIAmount(){
+  const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
+  const el=document.getElementById('upiPayAmount');
+  if(el) el.textContent=total;
+}
+
+function selectUPIApp(appKey){
+  selectedUPIApp=appKey;
+  // Update button states
+  document.querySelectorAll('.upi-app-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('upiApp'+appKey.charAt(0).toUpperCase()+appKey.slice(1))?.classList.add('selected');
+  // Show/hide QR
+  document.getElementById('upiQRSection').style.display=appKey==='qr'?'block':'none';
+  if(appKey==='qr') generateQR();
+  // Enable proceed button
+  document.getElementById('btnProceedToPay').disabled=false;
+  updateUPIAmount();
+}
+
+function useManualUPI(){
+  const id=document.getElementById('manualUpiId').value.trim();
+  if(!id||!id.includes('@')){showToast('⚠️ Enter a valid UPI ID like name@upi');return;}
+  selectedUPIApp='manual';
+  document.querySelectorAll('.upi-app-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('btnProceedToPay').disabled=false;
+  showToast('✓ UPI ID set: '+id);
+  updateUPIAmount();
+}
+
+function proceedToPay(){
+  if(!selectedUPIApp){showToast('⚠️ Please select a UPI app or enter UPI ID');return;}
+  const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
+  const meta=UPI_APP_META[selectedUPIApp];
+  // Switch to step 2
+  document.getElementById('upiStep1').classList.remove('active');
+  document.getElementById('upiStep2').classList.add('active');
+  document.getElementById('awaitAmount').textContent='₹'+total;
+  document.getElementById('awaitAppBadge').textContent=(meta.emoji||'📱')+' '+meta.name;
+  document.getElementById('openAppName').textContent=meta.name;
+  document.getElementById('awaitIcon').textContent=selectedUPIApp==='qr'?'📷':'📲';
+  // Hide the open app button for QR flow
+  document.getElementById('btnOpenApp').style.display=selectedUPIApp==='qr'?'none':'flex';
+}
+
+function openUPIApp(){
+  const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
+  const meta=UPI_APP_META[selectedUPIApp];
+  let targetUPI=UPI_ID;
+  if(selectedUPIApp==='manual'){
+    targetUPI=document.getElementById('manualUpiId').value.trim()||UPI_ID;
+  }
+  if(meta&&meta.deeplink){
+    const link=meta.deeplink(targetUPI,total,UPI_NAME,'BAMOOBUSH Order');
+    window.location.href=link;
+    // Fallback: also try standard UPI intent after short delay
+    setTimeout(()=>{
+      const fallback=`upi://pay?pa=${targetUPI}&pn=${encodeURIComponent(UPI_NAME)}&am=${total}&cu=INR&tn=${encodeURIComponent('BAMOOBUSH Order')}`;
+      const a=document.createElement('a');a.href=fallback;document.body.appendChild(a);a.click();document.body.removeChild(a);
+    },800);
+  }
+  showToast(`Opening ${meta.name}…`);
+}
+
+function confirmPaymentDone(){
+  // Ask for transaction ID
+  const txId=prompt('Please enter your UPI Transaction ID (found in your UPI app payment history):');
+  if(!txId||!txId.trim()){showToast('⚠️ Transaction ID is required to confirm payment.');return;}
+  document.getElementById('cUPIRef').value=txId.trim();
+  upiPaymentConfirmed=true;
+  // Show success state in awaiting block
+  document.getElementById('upiStep2').innerHTML=`
+    <div class="upi-awaiting" style="border-color:var(--green);background:linear-gradient(135deg,#e8f5e9,#f0faf2)">
+      <div style="font-size:3rem;margin-bottom:.5rem">✅</div>
+      <h4>Payment Recorded!</h4>
+      <div class="await-amount" style="font-size:1.1rem">Txn ID: <span style="font-family:monospace">${txId.trim()}</span></div>
+      <div class="await-upi" style="margin-top:.4rem">Now click <strong>Place Order</strong> below to confirm your order.</div>
+    </div>`;
+  // Enable place order button
+  document.getElementById('placeOrderBtn').disabled=false;
+  const notice=document.getElementById('paymentConfirmedNotice');
+  if(notice){notice.style.display='flex';}
+  showToast('✅ Payment confirmed! Now place your order.');
+}
+
+function goBackToAppPicker(){
+  selectedUPIApp=null;
+  document.getElementById('upiStep2').classList.remove('active');
+  document.getElementById('upiStep1').classList.add('active');
+  document.querySelectorAll('.upi-app-btn').forEach(b=>b.classList.remove('selected'));
+}
+
+function resetUPIFlow(){
+  selectedUPIApp=null;upiPaymentConfirmed=false;
+  document.querySelectorAll('.upi-step').forEach((s,i)=>{s.classList.toggle('active',i===0);});
+  document.querySelectorAll('.upi-app-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('upiQRSection').style.display='none';
+  const btn=document.getElementById('btnProceedToPay');
+  if(btn)btn.disabled=true;
+  document.getElementById('cUPIRef').value='';
+}
+
+function copyUPIId(){
+  navigator.clipboard?.writeText('abrahamhin19-1@oksbi').then(()=>showToast('📋 UPI ID copied!'));
+}
+
 function generateQR(){
   const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
   const upiLink=`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${total}&cu=INR&tn=${encodeURIComponent('BAMOOBUSH Order')}`;
-  const canvas=document.getElementById('qrCanvas');
-  if(canvas&&window.QRCode){
-    canvas.width=180;canvas.height=180;
-    new QRCode(document.getElementById('qrCodeBox'),{
-      text:upiLink,width:180,height:180,
-      colorDark:'#1a4a2e',colorLight:'#faf8f2',
-      correctLevel:QRCode.CorrectLevel.M
-    });
-    // QRCode appends a new div each time; keep only one
-    const box=document.getElementById('qrCodeBox');
-    while(box.children.length>2)box.removeChild(box.firstChild);
+  const box=document.getElementById('qrCodeBox');
+  if(box){
+    box.innerHTML='';
+    if(window.QRCode){
+      new QRCode(box,{text:upiLink,width:160,height:160,colorDark:'#1a4a2e',colorLight:'#faf8f2',correctLevel:QRCode.CorrectLevel.M});
+    }
   }
 }
 
@@ -862,10 +1119,15 @@ function openCheckout(){
   refreshCheckoutTotal();
   document.getElementById('checkoutTitle').textContent='Complete Your Order';
   document.getElementById('checkoutModal').classList.add('open');
-  // Show UPI section by default since it's now the first option
-  document.getElementById('upiSection').style.display='';
+  // Show UPI section by default (first option)
+  document.getElementById('upiSection').style.display='block';
   document.getElementById('bankSection').style.display='none';
-  generateQR();
+  // Reset UPI flow & gate place order button
+  resetUPIFlow();
+  document.getElementById('placeOrderBtn').disabled=true;
+  const notice=document.getElementById('paymentConfirmedNotice');
+  if(notice) notice.style.display='none';
+  updateUPIAmount();
 }
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');}
 
@@ -888,8 +1150,8 @@ function placeOrder(){
   const upiRef=(document.getElementById('cUPIRef')||{}).value||'';
   const bankRef=(document.getElementById('cBankRef')||{}).value||'';
   // Validate payment-specific fields
-  if(payMethod==='upi'&&!upiRef.trim()){
-    showToast('⚠️ Please enter your UPI Transaction ID.');
+  if(payMethod==='upi'&&!upiPaymentConfirmed){
+    showToast('⚠️ Please complete UPI payment and tap "I\'ve Completed the Payment".');
     return;
   }
   if(payMethod==='bank'&&!bankRef.trim()){
