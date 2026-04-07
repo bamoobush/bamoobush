@@ -513,7 +513,6 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
       <div class="form-group">
         <label>Payment Method</label>
         <select id="cPayment" onchange="handlePaymentChange()">
-          <option value="cod">Cash on Delivery</option>
           <option value="upi">UPI — GPay / PhonePe / Paytm / BHIM</option>
           <option value="bank">Bank Transfer (NEFT/IMPS)</option>
         </select>
@@ -863,6 +862,10 @@ function openCheckout(){
   refreshCheckoutTotal();
   document.getElementById('checkoutTitle').textContent='Complete Your Order';
   document.getElementById('checkoutModal').classList.add('open');
+  // Show UPI section by default since it's now the first option
+  document.getElementById('upiSection').style.display='';
+  document.getElementById('bankSection').style.display='none';
+  generateQR();
 }
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');}
 
@@ -881,14 +884,23 @@ function placeOrder(){
     if(!ok)valid=false;
   });
   if(!valid)return;
+  const payMethod=document.getElementById('cPayment').value;
+  const upiRef=(document.getElementById('cUPIRef')||{}).value||'';
+  const bankRef=(document.getElementById('cBankRef')||{}).value||'';
+  // Validate payment-specific fields
+  if(payMethod==='upi'&&!upiRef.trim()){
+    showToast('⚠️ Please enter your UPI Transaction ID.');
+    return;
+  }
+  if(payMethod==='bank'&&!bankRef.trim()){
+    showToast('⚠️ Please enter your Bank Transaction Reference Number.');
+    return;
+  }
   const btn=document.getElementById('placeOrderBtn');
   btn.disabled=true;btn.textContent='⏳ Processing...';
   const isTN=document.getElementById('cState').value==='TN';
   const fee=isTN?0:DELIVERY_FEE;
   const sub=cartSubtotal();
-  const payMethod=document.getElementById('cPayment').value;
-  const upiRef=(document.getElementById('cUPIRef')||{}).value||'';
-  const bankRef=(document.getElementById('cBankRef')||{}).value||'';
   const orderData={
     id:'BB'+Date.now(), date:new Date().toLocaleDateString('en-IN'),
     customer:{
@@ -1348,7 +1360,7 @@ function renderAdminOrders(){
         ${(o.items||[]).map(i=>`• ${i.name} × ${i.qty} = ₹${i.price*i.qty}`).join('<br/>')}
       </div>
       <div class="order-payment-proof">
-        💳 Payment: <strong>${(o.payment||'COD').toUpperCase()}</strong>
+        💳 Payment: <strong>${(o.payment||'UPI').toUpperCase()}</strong>
         ${o.upiRef?` · UPI Ref: <strong>${o.upiRef}</strong>`:''}
         ${o.bankRef?` · Bank Ref: <strong>${o.bankRef}</strong>`:''}
         <br/>🚚 Delivery: <strong>${o.deliveryFee===0?'FREE (Tamil Nadu)':'₹'+o.deliveryFee+' (Outside TN'}</strong>
