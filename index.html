@@ -1869,62 +1869,81 @@ function bbSend() {
   bbRespond(q);
 }
 
-async function bbRespond(userMsg) {
+function bbRespond(userMsg) {
   bbShowTyping();
-  // Build product list for context
-  const productList = PRODUCTS.map(p => `${p.name} (₹${p.price})`).join(', ');
-  const systemPrompt = `You are a friendly and helpful customer support assistant for BAMOOBUSH, a premium natural bamboo lifestyle products brand based in Tamil Nadu, India.
-
-Key information about BAMOOBUSH:
-- Brand: BAMOOBUSH — Nature · Pure · Refined
-- Specialty: Bamboo and natural wellness, skincare & lifestyle products
-- Products available: ${productList}
-- Delivery: FREE within Tamil Nadu. ₹85 for outside Tamil Nadu (other states).
-- Payment methods: UPI (Google Pay, PhonePe, Paytm, BHIM, Amazon Pay) and Bank Transfer (NEFT/IMPS)
-- UPI ID: abrahamhin19-1@oksbi
-- Bank: State Bank of India, Account: Abraham Benny Hin, IFSC: SBIN0021869, Branch: Kelambakkam
-- WhatsApp contact: +91 73582 13719
-- Email: bamoobush@gmail.com
-- All products are natural, eco-friendly and made from sustainable bamboo
-- Orders are placed on the website and confirmed via WhatsApp
-- Returns/issues: Contact via WhatsApp within 7 days of delivery
-
-Guidelines:
-- Be warm, concise and helpful. Keep responses under 3 sentences unless listing items.
-- Use emojis occasionally to be friendly.
-- If someone wants to buy, direct them to the shop section or add to cart.
-- If unsure, suggest they WhatsApp at +91 73582 13719.
-- Do NOT answer questions unrelated to BAMOOBUSH or shopping.`;
-
-  const messages = [
-    ...bbChatHistory.slice(-8).map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.text.replace(/<[^>]+>/g, '') })),
-  ];
-  // Remove the last one we just added (it's already included from history)
-  // Actually build fresh from history minus the latest bot "typing" placeholder
-  const apiMessages = bbChatHistory
-    .filter(m => m.role === 'user' || m.role === 'bot')
-    .slice(-10)
-    .map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.text.replace(/<[^>]+>/g, '') }));
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: apiMessages
-      })
-    });
-    const data = await res.json();
+  setTimeout(() => {
     bbHideTyping();
-    const reply = data?.content?.[0]?.text || "I'm sorry, I couldn't get a response. Please WhatsApp us at +91 73582 13719 for help! 😊";
+    const reply = bbGetReply(userMsg);
     bbAddMsg('bot', reply);
-  } catch (e) {
-    bbHideTyping();
-    bbAddMsg('bot', "Oops, something went wrong! Please reach us directly on WhatsApp at +91 73582 13719 🌿");
+  }, 700);
+}
+
+function bbGetReply(msg) {
+  const q = msg.toLowerCase().trim();
+  const productList = PRODUCTS.map(p => `• <strong>${p.name}</strong> — ₹${p.price}`).join('<br>');
+
+  // Products
+  if (/product|sell|offer|item|what do you|catalog|bamboo|available|range/i.test(q)) {
+    return `🌿 Here are our current products:<br><br>${productList}<br><br>Scroll up to browse and add any to your cart!`;
   }
+
+  // Price
+  if (/price|cost|how much|rate|charge/i.test(q) && !/delivery|shipping/i.test(q)) {
+    return `💰 Our products range from ₹${Math.min(...PRODUCTS.map(p=>p.price))} to ₹${Math.max(...PRODUCTS.map(p=>p.price))}. Here's the full list:<br><br>${productList}`;
+  }
+
+  // Delivery
+  if (/delivery|shipping|ship|courier|dispatch|deliver/i.test(q)) {
+    return `🚚 Delivery is <strong>FREE</strong> anywhere within Tamil Nadu! For all other states it's just <strong>₹85</strong>. We dispatch within 1–2 business days after order confirmation.`;
+  }
+
+  // Payment
+  if (/pay|payment|upi|gpay|phonepe|paytm|bhim|bank|transfer|method/i.test(q)) {
+    return `💳 We accept:<br>• <strong>UPI</strong> — GPay, PhonePe, Paytm, BHIM, Amazon Pay<br>• <strong>Bank Transfer</strong> — NEFT/IMPS (SBI)<br><br>UPI ID: <strong>abrahamhin19-1@oksbi</strong><br>Just select your method at checkout!`;
+  }
+
+  // Order process
+  if (/order|buy|purchase|how to|place|checkout|cart/i.test(q)) {
+    return `🛒 Ordering is easy!<br>1. Browse products and click <strong>Add to Cart</strong><br>2. Open cart and click <strong>Proceed to Checkout</strong><br>3. Fill in your details & choose UPI or Bank Transfer<br>4. Pay and click <strong>Place Order</strong> ✅<br><br>You'll get a WhatsApp confirmation from us!`;
+  }
+
+  // Track order / order status
+  if (/track|status|where.*order|my order|when.*deliver/i.test(q)) {
+    return `📦 To check your order status, log in and go to <strong>My Orders</strong> from the top menu. You can also WhatsApp us at <strong>+91 73582 13719</strong> with your Order ID and we'll update you right away!`;
+  }
+
+  // Return / refund
+  if (/return|refund|exchange|replace|broken|damage|wrong/i.test(q)) {
+    return `🔄 We accept returns and replacements within <strong>7 days</strong> of delivery. If your product is damaged or wrong, just WhatsApp us a photo at <strong>+91 73582 13719</strong> and we'll sort it out quickly!`;
+  }
+
+  // Natural / ingredients / safe
+  if (/natural|organic|safe|ingredient|chemical|eco|sustainable|bamboo|pure/i.test(q)) {
+    return `🌱 Yes! All BAMOOBUSH products are <strong>100% natural, eco-friendly and sustainable</strong>. We use bamboo and plant-based ingredients — free from harsh chemicals. Safe for daily use for all skin types.`;
+  }
+
+  // Contact / WhatsApp
+  if (/contact|whatsapp|call|phone|reach|help|support|email/i.test(q)) {
+    return `📞 You can reach us at:<br>• <strong>WhatsApp:</strong> +91 73582 13719<br>• <strong>Email:</strong> bamoobush@gmail.com<br><br>We're available Mon–Sat, 9am–7pm. We usually reply within a few hours!`;
+  }
+
+  // Discount / offer / coupon
+  if (/discount|offer|coupon|code|deal|sale|promo/i.test(q)) {
+    return `🎁 We occasionally run special offers! Follow us or WhatsApp us at <strong>+91 73582 13719</strong> to find out about current deals. All our prices are already great value for 100% natural products! 🌿`;
+  }
+
+  // Hello / hi / greetings
+  if (/^(hi|hello|hey|good morning|good evening|good afternoon|namaste|vanakkam|hii|helo)/i.test(q)) {
+    return `👋 Hello! Welcome to BAMOOBUSH 🌿 I'm here to help you with anything — products, orders, delivery, payments, and more. What can I help you with today?`;
+  }
+
+  // Thank you
+  if (/thank|thanks|thx|great|awesome|perfect|helpful/i.test(q)) {
+    return `🌿 You're welcome! Happy to help. Is there anything else I can assist you with?`;
+  }
+
+  // Default fallback
+  return `🌿 I'm not sure about that, but our team can help! Reach us on WhatsApp at <strong>+91 73582 13719</strong> or email <strong>bamoobush@gmail.com</strong> and we'll get back to you quickly!`;
 }
 </script>
 </body>
