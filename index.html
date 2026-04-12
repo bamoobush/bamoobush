@@ -337,6 +337,14 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
 .order-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;font-size:.82rem;margin:.6rem 0}
 .order-detail-grid .detail-label{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
 .order-detail-grid .detail-val{color:var(--text);font-weight:500}
+.order-items-label{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.order-item-row{display:flex;align-items:flex-start;gap:.7rem;padding:.5rem 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.order-item-row:last-child{border-bottom:none}
+.order-item-thumb{width:52px;height:52px;object-fit:contain;border-radius:6px;background:var(--cream);flex-shrink:0;padding:3px;border:1px solid rgba(0,0,0,.07)}
+.order-item-info{flex:1}
+.order-item-name{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--green)}
+.order-item-sub{font-size:.75rem;color:var(--muted);margin:.15rem 0}
+.order-item-price{font-size:.84rem;color:var(--text)}
 .order-items-block{font-size:.83rem;color:var(--muted);margin:.5rem 0;padding:.5rem .8rem;background:rgba(0,0,0,.03);border-radius:4px}
 .order-payment-proof{font-size:.8rem;color:var(--muted);margin-top:.4rem;padding:.5rem;background:rgba(184,146,42,.07);border-radius:4px;border-left:3px solid var(--gold)}
 .order-actions-row{display:flex;gap:.5rem;margin-top:.8rem;flex-wrap:wrap}
@@ -1221,7 +1229,7 @@ function placeOrder(){
       state:isTN?'Tamil Nadu':document.getElementById('cState').options[document.getElementById('cState').selectedIndex].text
     },
     payment:payMethod, upiRef, bankRef,
-    items:cart.map(i=>{return{name:i.name,qty:i.qty,price:i.price}}),
+    items:cart.map(i=>{return{name:i.name,qty:i.qty,price:i.price,img:i.img||'',sub:i.sub||''}}),
     subtotal:sub, deliveryFee:fee, total:sub+fee, status:'pending'
   };
   allOrders.unshift(orderData);
@@ -1692,7 +1700,16 @@ function renderAdminOrders(){
         <div style="grid-column:1/-1"><div class="detail-label">Delivery Address</div><div class="detail-val">📍 ${o.customer?.address||''}, ${o.customer?.city||''} — ${o.customer?.pin||''}, ${o.customer?.state||'Tamil Nadu'}</div></div>
       </div>
       <div class="order-items-block">
-        ${(o.items||[]).map(i=>`• ${i.name} × ${i.qty} = ₹${i.price*i.qty}`).join('<br/>')}
+        <div class="order-items-label">🛒 Products Ordered</div>
+        ${(o.items||[]).map(i=>`
+          <div class="order-item-row">
+            ${i.img?`<img src="${i.img}" class="order-item-thumb" alt="${i.name}" onerror="this.style.display='none'"/>`:''}
+            <div class="order-item-info">
+              <div class="order-item-name">${i.name}</div>
+              ${i.sub?`<div class="order-item-sub">${i.sub}</div>`:''}
+              <div class="order-item-price">Qty: <strong>${i.qty}</strong> &nbsp;×&nbsp; ₹${i.price} &nbsp;= &nbsp;<strong>₹${i.price*i.qty}</strong></div>
+            </div>
+          </div>`).join('')}
       </div>
       <div class="order-payment-proof">
         💳 Payment: <strong>${(o.payment||'UPI').toUpperCase()}</strong>
@@ -1860,7 +1877,7 @@ renderProducts();updateCartUI();updateAuthUI();
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:.5rem">
-      <button onclick="bbRestartChat()" title="Restart chat" style="background:rgba(255,255,255,.12);border:none;border-radius:20px;color:rgba(240,235,224,.8);font-size:.7rem;font-family:'Jost',sans-serif;padding:.28rem .7rem;cursor:pointer;letter-spacing:.04em;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">↺ Restart</button>
+      <button id="bbRestartBtn" onclick="bbRestartChat()" title="Restart chat" style="display:none;background:rgba(255,255,255,.12);border:none;border-radius:20px;color:rgba(240,235,224,.8);font-size:.7rem;font-family:'Jost',sans-serif;padding:.28rem .7rem;cursor:pointer;letter-spacing:.04em;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">↺ Restart</button>
       <button class="bb-chat-close" onclick="toggleChatbot()">×</button>
     </div>
   </div>
@@ -1895,7 +1912,7 @@ function toggleChatbot() {
   if (bbChatOpen && bbChatHistory.length === 0) {
     setTimeout(() => {
       bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?");
-      setTimeout(() => bbAddMsg('bot', '🔄 If you ever want to start over, just tap the <strong>↺ Restart</strong> button at the top to clear the chat and begin fresh!'), 900);
+      
     }, 300);
   }
   if (bbChatOpen) document.getElementById('bb-chat-input').focus();
@@ -1906,6 +1923,7 @@ function bbRestartChat() {
   document.getElementById('bb-chat-messages').innerHTML = '';
   document.getElementById('bbQuickBtns').style.display = 'flex';
   document.getElementById('bb-chat-input').value = '';
+  document.getElementById('bbRestartBtn').style.display = 'none';
   setTimeout(() => {
     bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?");
     setTimeout(() => bbAddMsg('bot', '🔄 Need to start over at any point? Just tap the <strong>↺ Restart</strong> button at the top to clear the chat and begin fresh!'), 800);
@@ -1938,6 +1956,7 @@ function bbHideTyping() {
 function bbQuick(q) {
   document.getElementById('bbQuickBtns').style.display = 'none';
   bbAddMsg('user', q);
+  document.getElementById('bbRestartBtn').style.display = 'inline-block';
   bbRespond(q);
 }
 
@@ -1948,6 +1967,7 @@ function bbSend() {
   inp.value = '';
   document.getElementById('bbQuickBtns').style.display = 'none';
   bbAddMsg('user', q);
+  document.getElementById('bbRestartBtn').style.display = 'inline-block';
   bbRespond(q);
 }
 
