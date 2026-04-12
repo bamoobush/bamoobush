@@ -550,7 +550,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
         <label>State</label>
         <select id="cState" onchange="updateDeliveryCharge()">
           <option value="TN">Tamil Nadu — FREE Delivery 🚚</option>
-          <option value="other">Other State — ₹50 Delivery</option>
+          <option value="other">Other State — ₹85 Delivery</option>
         </select>
       </div>
       <div id="deliveryNotice" style="padding:.6rem .9rem;border-radius:6px;font-size:.82rem;margin-bottom:.8rem;background:#d1e7dd;color:#0f5132;font-weight:500">
@@ -631,6 +631,9 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Proceed to Pay ₹<span id="upiPayAmount">0</span>
             </button>
+            <div style="margin-top:.6rem;font-size:.73rem;color:var(--muted);text-align:center">
+              UPI limit exceeded? <button onclick="switchToBankTransfer()" style="background:none;border:none;color:var(--green);font-family:'Jost',sans-serif;font-size:.73rem;cursor:pointer;text-decoration:underline;padding:0;font-weight:600">Switch to Bank Transfer →</button>
+            </div>
           </div>
 
           <!-- STEP 2: Awaiting payment confirmation -->
@@ -651,7 +654,13 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
                 ✓ I've Completed the Payment
               </button>
               <div class="await-timer" id="awaitTimerText">Waiting for payment confirmation…</div>
-              <button class="btn-try-another" onclick="goBackToAppPicker()">← Try another payment method</button>
+              <!-- UPI LIMIT WARNING -->
+              <div style="margin-top:.9rem;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:.75rem 1rem;font-size:.79rem;color:#7a5c00;text-align:left;line-height:1.6">
+                ⚠️ <strong>Seeing a "limit exceeded" error?</strong><br/>
+                UPI apps have a daily limit (usually ₹1 lakh). If your payment is being declined, try a different UPI app or switch to <strong>Bank Transfer</strong> — it has no transaction limits.
+                <button onclick="switchToBankTransfer()" style="display:block;margin-top:.6rem;width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:.5rem;font-size:.78rem;font-family:\x27Jost\x27,sans-serif;font-weight:600;cursor:pointer;letter-spacing:.04em">🏦 Switch to Bank Transfer (No Limit)</button>
+              </div>
+              <button class="btn-try-another" onclick="goBackToAppPicker()">← Try another UPI app</button>
             </div>
           </div>
         </div>
@@ -805,7 +814,7 @@ const ADMIN_EMAIL    = 'bamoobush@gmail.com';
 const ADMIN_PASS     = 'Benny@1234';
 const UPI_ID         = 'abrahamhin19-1@oksbi';
 const UPI_NAME       = 'BAMOOBUSH';
-const DELIVERY_FEE   = 50; // ₹ for outside Tamil Nadu
+const DELIVERY_FEE   = 85; // ₹ for outside Tamil Nadu
 
 // ══════════════════════════════════════════════
 //  PRODUCT IMAGES (your real product photos)
@@ -929,7 +938,7 @@ function updateCartUI(){
   document.getElementById('cartSubtotal').textContent='₹'+sub;
   // Show delivery info in cart (default TN = free)
   const shLabel=document.getElementById('cartShippingLabel');
-  shLabel.innerHTML='<span class="delivery-badge delivery-free">🚚 FREE — Tamil Nadu</span> <span style="font-size:.7rem;color:var(--muted)">(₹50 outside TN)</span>';
+  shLabel.innerHTML='<span class="delivery-badge delivery-free">🚚 FREE — Tamil Nadu</span> <span style="font-size:.7rem;color:var(--muted)">(₹85 outside TN)</span>';
   document.getElementById('cartTotal').textContent='₹'+sub+' (+ delivery at checkout)';
   footer.style.display='block';
 }
@@ -947,7 +956,7 @@ function updateDeliveryCharge(){
     notice.textContent='🚚 Free delivery within Tamil Nadu!';
   } else {
     notice.style.background='#fff3cd';notice.style.color='#856404';
-    notice.textContent='🚚 Delivery charge: ₹50 (outside Tamil Nadu)';
+    notice.textContent='🚚 Delivery charge: ₹85 (outside Tamil Nadu)';
   }
   refreshCheckoutTotal();
 }
@@ -958,6 +967,15 @@ function refreshCheckoutTotal(){
   else html+=`<div class="checkout-item-row"><span>Delivery</span><span style="color:#0f5132;font-weight:600">FREE 🚚</span></div>`;
   document.getElementById('checkoutItemsList').innerHTML=html;
   document.getElementById('checkoutTotal').textContent='₹'+(sub+fee);
+}
+function switchToBankTransfer(){
+  // Switch payment dropdown to bank
+  const sel=document.getElementById('cPayment');
+  sel.value='bank';
+  handlePaymentChange();
+  // Scroll to bank section so customer sees the details
+  document.getElementById('bankSection').scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('🏦 Switched to Bank Transfer — no limits!');
 }
 function handlePaymentChange(){
   const val=document.getElementById('cPayment').value;
@@ -1053,20 +1071,43 @@ function openUPIApp(){
 }
 
 function confirmPaymentDone(){
-  // Ask for transaction ID
-  const txId=prompt('Please enter your UPI Transaction ID (found in your UPI app payment history):');
-  if(!txId||!txId.trim()){showToast('⚠️ Transaction ID is required to confirm payment.');return;}
-  document.getElementById('cUPIRef').value=txId.trim();
+  // Show inline transaction ID input instead of browser prompt
+  const step2=document.getElementById('upiStep2');
+  // If already showing the txn input form, just submit it
+  const existingInput=document.getElementById('inlineTxnId');
+  if(existingInput){
+    submitTxnId();
+    return;
+  }
+  // Replace the confirm button area with an inline form
+  const confirmBtn=document.querySelector('.btn-paid-confirm');
+  if(confirmBtn){
+    const wrapper=document.createElement('div');
+    wrapper.id='txnInputWrapper';
+    wrapper.style.cssText='margin-top:.8rem;background:#f0faf2;border:1px solid #b2dfdb;border-radius:10px;padding:.9rem 1rem;text-align:left';
+    wrapper.innerHTML=`
+      <p style="font-size:.8rem;font-weight:600;color:var(--green);margin-bottom:.5rem">✅ Great! Enter your UPI Transaction ID</p>
+      <p style="font-size:.74rem;color:var(--muted);margin-bottom:.6rem">Find it in your UPI app under Payment History. <em>(Optional — you can skip if you can't find it)</em></p>
+      <input id="inlineTxnId" type="text" placeholder="e.g. 123456789012 (optional)" style="width:100%;padding:.55rem .8rem;border:1px solid #ccc;border-radius:6px;font-size:.84rem;font-family:'Jost',sans-serif;outline:none;margin-bottom:.6rem"/>
+      <div style="display:flex;gap:.5rem">
+        <button onclick="submitTxnId()" style="flex:1;background:var(--green);color:white;border:none;border-radius:6px;padding:.6rem;font-size:.82rem;font-family:'Jost',sans-serif;font-weight:600;cursor:pointer">✓ Confirm & Place Order</button>
+        <button onclick="submitTxnId(true)" style="background:none;border:1px solid #ccc;border-radius:6px;padding:.6rem .8rem;font-size:.78rem;font-family:'Jost',sans-serif;cursor:pointer;color:var(--muted)">Skip</button>
+      </div>`;
+    confirmBtn.replaceWith(wrapper);
+  }
+}
+
+function submitTxnId(skip){
+  const txId=(skip?'':document.getElementById('inlineTxnId')?.value.trim())||'';
+  document.getElementById('cUPIRef').value=txId||'PAID-NO-REF';
   upiPaymentConfirmed=true;
-  // Show success state in awaiting block
   document.getElementById('upiStep2').innerHTML=`
     <div class="upi-awaiting" style="border-color:var(--green);background:linear-gradient(135deg,#e8f5e9,#f0faf2)">
       <div style="font-size:3rem;margin-bottom:.5rem">✅</div>
-      <h4>Payment Recorded!</h4>
-      <div class="await-amount" style="font-size:1.1rem">Txn ID: <span style="font-family:monospace">${txId.trim()}</span></div>
-      <div class="await-upi" style="margin-top:.4rem">Now click <strong>Place Order</strong> below to confirm your order.</div>
+      <h4>Payment Confirmed!</h4>
+      ${txId?`<div class="await-amount" style="font-size:1rem">Txn ID: <span style="font-family:monospace">${txId}</span></div>`:'<div class="await-upi">No transaction ID entered — seller will verify manually.</div>'}
+      <div class="await-upi" style="margin-top:.6rem">Now click <strong>Place Order</strong> below ⬇</div>
     </div>`;
-  // Enable place order button
   document.getElementById('placeOrderBtn').disabled=false;
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice){notice.style.display='flex';}
@@ -1697,6 +1738,194 @@ function showToast(msg){
 //  INIT
 // ══════════════════════════════════════════════
 renderProducts();updateCartUI();updateAuthUI();
+</script>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--  BAMOOBUSH CHATBOT                          -->
+<!-- ═══════════════════════════════════════════ -->
+<style>
+/* Chatbot Widget */
+#bb-chat-btn{position:fixed;bottom:2rem;right:2rem;z-index:8000;width:58px;height:58px;border-radius:50%;background:var(--green);border:none;cursor:pointer;box-shadow:0 6px 24px rgba(26,74,46,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s,background .2s;font-size:1.5rem}
+#bb-chat-btn:hover{background:var(--green-mid);transform:scale(1.1)}
+#bb-chat-btn .chat-badge{position:absolute;top:-3px;right:-3px;background:var(--gold);color:white;border-radius:50%;width:18px;height:18px;font-size:.6rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+#bb-chatbox{position:fixed;bottom:6.5rem;right:2rem;z-index:8001;width:340px;max-height:500px;background:white;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden;transform:scale(.92) translateY(20px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s}
+#bb-chatbox.open{transform:scale(1) translateY(0);opacity:1;pointer-events:all}
+.bb-chat-header{background:var(--green);padding:1rem 1.2rem;display:flex;align-items:center;gap:.7rem;justify-content:space-between}
+.bb-chat-header-left{display:flex;align-items:center;gap:.7rem}
+.bb-chat-avatar{width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.bb-chat-name{color:var(--cream);font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;line-height:1.1}
+.bb-chat-status{color:rgba(240,235,224,.55);font-size:.68rem;font-family:'Jost',sans-serif}
+.bb-chat-close{background:none;border:none;color:rgba(240,235,224,.6);font-size:1.3rem;cursor:pointer;line-height:1;padding:0}
+.bb-chat-close:hover{color:var(--cream)}
+#bb-chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.7rem;min-height:220px;max-height:310px}
+.bb-msg{max-width:82%;padding:.65rem .9rem;border-radius:12px;font-size:.84rem;line-height:1.5;font-family:'Jost',sans-serif;animation:bbMsgIn .2s ease both}
+@keyframes bbMsgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.bb-msg.bot{background:var(--cream);color:var(--text);border-bottom-left-radius:3px;align-self:flex-start}
+.bb-msg.user{background:var(--green);color:white;border-bottom-right-radius:3px;align-self:flex-end}
+.bb-typing{display:flex;align-items:center;gap:4px;padding:.65rem .9rem;background:var(--cream);border-radius:12px;border-bottom-left-radius:3px;align-self:flex-start}
+.bb-typing span{width:7px;height:7px;background:var(--muted);border-radius:50%;animation:bbDot 1.2s infinite}
+.bb-typing span:nth-child(2){animation-delay:.2s}
+.bb-typing span:nth-child(3){animation-delay:.4s}
+@keyframes bbDot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.bb-quick-btns{display:flex;flex-wrap:wrap;gap:.4rem;padding:.6rem 1rem;border-top:1px solid rgba(0,0,0,.05)}
+.bb-quick-btn{background:var(--cream);border:1px solid rgba(26,74,46,.2);border-radius:16px;padding:.3rem .75rem;font-size:.75rem;cursor:pointer;color:var(--green);font-family:'Jost',sans-serif;transition:background .15s,border-color .15s}
+.bb-quick-btn:hover{background:var(--green);color:white;border-color:var(--green)}
+.bb-chat-input-row{display:flex;gap:.5rem;padding:.75rem 1rem;border-top:1px solid rgba(0,0,0,.07);background:white}
+#bb-chat-input{flex:1;border:1px solid #ddd;border-radius:20px;padding:.5rem 1rem;font-size:.84rem;font-family:'Jost',sans-serif;outline:none;color:var(--text);transition:border-color .2s}
+#bb-chat-input:focus{border-color:var(--green)}
+#bb-chat-send{background:var(--green);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .2s}
+#bb-chat-send:hover{background:var(--green-mid)}
+#bb-chat-send svg{width:15px;height:15px;fill:none;stroke:white;stroke-width:2.2}
+</style>
+
+<!-- Chat Toggle Button -->
+<button id="bb-chat-btn" onclick="toggleChatbot()" title="Chat with us">
+  🌿
+  <span class="chat-badge">1</span>
+</button>
+
+<!-- Chatbox -->
+<div id="bb-chatbox">
+  <div class="bb-chat-header">
+    <div class="bb-chat-header-left">
+      <div class="bb-chat-avatar">🌿</div>
+      <div>
+        <div class="bb-chat-name">BAMOOBUSH Support</div>
+        <div class="bb-chat-status">Typically replies instantly</div>
+      </div>
+    </div>
+    <button class="bb-chat-close" onclick="toggleChatbot()">×</button>
+  </div>
+  <div id="bb-chat-messages"></div>
+  <div class="bb-quick-btns" id="bbQuickBtns">
+    <button class="bb-quick-btn" onclick="bbQuick('What products do you sell?')">Our Products</button>
+    <button class="bb-quick-btn" onclick="bbQuick('What is the delivery charge?')">Delivery Info</button>
+    <button class="bb-quick-btn" onclick="bbQuick('How do I place an order?')">How to Order</button>
+    <button class="bb-quick-btn" onclick="bbQuick('What payment methods do you accept?')">Payment Options</button>
+    <button class="bb-quick-btn" onclick="bbQuick('Are your products natural?')">About Products</button>
+    <button class="bb-quick-btn" onclick="bbQuick('How to contact you?')">Contact Us</button>
+  </div>
+  <div class="bb-chat-input-row">
+    <input id="bb-chat-input" type="text" placeholder="Ask anything about BAMOOBUSH…" onkeydown="if(event.key==='Enter')bbSend()"/>
+    <button id="bb-chat-send" onclick="bbSend()">
+      <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CHATBOT LOGIC
+// ═══════════════════════════════════════════
+let bbChatOpen = false;
+let bbChatHistory = [];
+
+function toggleChatbot() {
+  bbChatOpen = !bbChatOpen;
+  document.getElementById('bb-chatbox').classList.toggle('open', bbChatOpen);
+  document.querySelector('#bb-chat-btn .chat-badge').style.display = 'none';
+  if (bbChatOpen && bbChatHistory.length === 0) {
+    setTimeout(() => bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?"), 300);
+  }
+  if (bbChatOpen) document.getElementById('bb-chat-input').focus();
+}
+
+function bbAddMsg(role, text) {
+  bbChatHistory.push({ role, text });
+  const msgs = document.getElementById('bb-chat-messages');
+  const div = document.createElement('div');
+  div.className = 'bb-msg ' + role;
+  div.innerHTML = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function bbShowTyping() {
+  const msgs = document.getElementById('bb-chat-messages');
+  const el = document.createElement('div');
+  el.className = 'bb-typing';
+  el.id = 'bbTyping';
+  el.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function bbHideTyping() {
+  document.getElementById('bbTyping')?.remove();
+}
+
+function bbQuick(q) {
+  document.getElementById('bbQuickBtns').style.display = 'none';
+  bbAddMsg('user', q);
+  bbRespond(q);
+}
+
+function bbSend() {
+  const inp = document.getElementById('bb-chat-input');
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+  document.getElementById('bbQuickBtns').style.display = 'none';
+  bbAddMsg('user', q);
+  bbRespond(q);
+}
+
+async function bbRespond(userMsg) {
+  bbShowTyping();
+  // Build product list for context
+  const productList = PRODUCTS.map(p => `${p.name} (₹${p.price})`).join(', ');
+  const systemPrompt = `You are a friendly and helpful customer support assistant for BAMOOBUSH, a premium natural bamboo lifestyle products brand based in Tamil Nadu, India.
+
+Key information about BAMOOBUSH:
+- Brand: BAMOOBUSH — Nature · Pure · Refined
+- Specialty: Bamboo and natural wellness, skincare & lifestyle products
+- Products available: ${productList}
+- Delivery: FREE within Tamil Nadu. ₹85 for outside Tamil Nadu (other states).
+- Payment methods: UPI (Google Pay, PhonePe, Paytm, BHIM, Amazon Pay) and Bank Transfer (NEFT/IMPS)
+- UPI ID: abrahamhin19-1@oksbi
+- Bank: State Bank of India, Account: Abraham Benny Hin, IFSC: SBIN0021869, Branch: Kelambakkam
+- WhatsApp contact: +91 73582 13719
+- Email: bamoobush@gmail.com
+- All products are natural, eco-friendly and made from sustainable bamboo
+- Orders are placed on the website and confirmed via WhatsApp
+- Returns/issues: Contact via WhatsApp within 7 days of delivery
+
+Guidelines:
+- Be warm, concise and helpful. Keep responses under 3 sentences unless listing items.
+- Use emojis occasionally to be friendly.
+- If someone wants to buy, direct them to the shop section or add to cart.
+- If unsure, suggest they WhatsApp at +91 73582 13719.
+- Do NOT answer questions unrelated to BAMOOBUSH or shopping.`;
+
+  const messages = [
+    ...bbChatHistory.slice(-8).map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.text.replace(/<[^>]+>/g, '') })),
+  ];
+  // Remove the last one we just added (it's already included from history)
+  // Actually build fresh from history minus the latest bot "typing" placeholder
+  const apiMessages = bbChatHistory
+    .filter(m => m.role === 'user' || m.role === 'bot')
+    .slice(-10)
+    .map(m => ({ role: m.role === 'bot' ? 'assistant' : 'user', content: m.text.replace(/<[^>]+>/g, '') }));
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: apiMessages
+      })
+    });
+    const data = await res.json();
+    bbHideTyping();
+    const reply = data?.content?.[0]?.text || "I'm sorry, I couldn't get a response. Please WhatsApp us at +91 73582 13719 for help! 😊";
+    bbAddMsg('bot', reply);
+  } catch (e) {
+    bbHideTyping();
+    bbAddMsg('bot', "Oops, something went wrong! Please reach us directly on WhatsApp at +91 73582 13719 🌿");
+  }
+}
 </script>
 </body>
 </html>
