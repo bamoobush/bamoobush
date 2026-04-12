@@ -768,12 +768,17 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
     <div class="modal-header"><h2 id="adminOrdersTitle">📦 Orders Dashboard</h2><button class="modal-close" onclick="closeModal('adminOrdersModal')">×</button></div>
     <div class="modal-body">
       <div class="orders-stats" id="ordersStats"></div>
+      <div style="display:flex;gap:.6rem;align-items:center;margin-bottom:.8rem;flex-wrap:wrap">
+        <input id="orderSearchInput" type="text" placeholder="🔍 Search by name, phone, order ID, city…" oninput="renderAdminOrders()" style="flex:1;min-width:200px;padding:.55rem 1rem;border:1px solid #ddd;border-radius:20px;font-size:.83rem;font-family:'Jost',sans-serif;outline:none"/>
+        <button onclick="exportOrdersCSV()" style="background:var(--green);color:white;border:none;border-radius:20px;padding:.5rem 1.1rem;font-size:.78rem;font-family:'Jost',sans-serif;font-weight:600;cursor:pointer;white-space:nowrap">⬇ Export CSV</button>
+      </div>
       <div class="orders-filter-tabs">
         <button class="orders-filter-tab active" onclick="setOrderFilter('all',this)">All</button>
         <button class="orders-filter-tab" onclick="setOrderFilter('pending',this)">Pending</button>
         <button class="orders-filter-tab" onclick="setOrderFilter('confirmed',this)">Confirmed</button>
         <button class="orders-filter-tab" onclick="setOrderFilter('shipped',this)">Shipped</button>
         <button class="orders-filter-tab" onclick="setOrderFilter('delivered',this)">Delivered</button>
+        <button class="orders-filter-tab" onclick="setOrderFilter('cancelled',this)">Cancelled</button>
       </div>
       <div id="adminOrdersList"></div>
     </div>
@@ -1631,67 +1636,127 @@ function setOrderFilter(status,btn){
   renderAdminOrders();
 }
 function renderAdminOrders(){
+  // Always re-read from localStorage for freshness
+  try{allOrders=JSON.parse(localStorage.getItem('bb_all_orders')||'[]');}catch(e){}
+
   const stats=document.getElementById('ordersStats');
   const list=document.getElementById('adminOrdersList');
   const total=allOrders.length;
-  const pending=allOrders.filter(o=>o.status==='pending').length;
+  const pending=allOrders.filter(o=>o.status==='pending'||!o.status).length;
+  const confirmed=allOrders.filter(o=>o.status==='confirmed').length;
+  const shipped=allOrders.filter(o=>o.status==='shipped').length;
   const delivered=allOrders.filter(o=>o.status==='delivered').length;
-  const revenue=allOrders.reduce((s,o)=>s+(o.total||0),0);
+  const cancelled=allOrders.filter(o=>o.status==='cancelled').length;
+  const revenue=allOrders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+(Number(o.total)||0),0);
+
   stats.innerHTML=`
-    <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-box"><div class="stat-num">${total}</div><div class="stat-lbl">Total Orders</div></div>
     <div class="stat-box"><div class="stat-num" style="color:#856404">${pending}</div><div class="stat-lbl">Pending</div></div>
     <div class="stat-box"><div class="stat-num" style="color:#0f5132">${delivered}</div><div class="stat-lbl">Delivered</div></div>
-    <div class="stat-box"><div class="stat-num">₹${revenue}</div><div class="stat-lbl">Revenue</div></div>`;
+    <div class="stat-box"><div class="stat-num" style="color:var(--green)">₹${revenue.toLocaleString('en-IN')}</div><div class="stat-lbl">Revenue</div></div>`;
+
+  // Search filter
+  const searchVal=(document.getElementById('orderSearchInput')?.value||'').toLowerCase().trim();
+
   let orders=allOrders;
-  if(orderFilter!=='all') orders=orders.filter(o=>o.status===orderFilter);
-  if(!orders.length){list.innerHTML='<div class="no-orders">📭 No orders in this category.</div>';return;}
-  list.innerHTML=orders.map(o=>`
-    <div class="order-card">
+  if(orderFilter!=='all') orders=orders.filter(o=>(o.status||'pending')===orderFilter);
+  if(searchVal) orders=orders.filter(o=>
+    (o.id||'').toLowerCase().includes(searchVal)||
+    (o.customer?.name||'').toLowerCase().includes(searchVal)||
+    (o.customer?.phone||'').toLowerCase().includes(searchVal)||
+    (o.customer?.city||'').toLowerCase().includes(searchVal)
+  );
+
+  if(!orders.length){
+    list.innerHTML='<div class="no-orders">📭 No orders found.</div>';
+    return;
+  }
+
+  list.innerHTML=orders.map((o,idx)=>{
+    // Use index in allOrders for safe button callbacks
+    const realIdx=allOrders.indexOf(o);
+    const fee=Number(o.deliveryFee);
+    const isFree=fee===0;
+    return `
+    <div class="order-card" id="ocard-${realIdx}">
       <div class="order-card-header">
         <div>
           <div class="order-id-label">Order #${o.id} · ${o.date}</div>
-          <div class="order-customer-name">👤 ${o.customer.name}</div>
+          <div class="order-customer-name">👤 ${o.customer?.name||'—'}</div>
         </div>
         <span class="order-status-badge status-${o.status||'pending'}">${(o.status||'PENDING').toUpperCase()}</span>
       </div>
       <div class="order-detail-grid">
-        <div><div class="detail-label">Phone</div><div class="detail-val">📞 ${o.customer.phone}</div></div>
-        <div><div class="detail-label">Email</div><div class="detail-val">📧 ${o.customer.email}</div></div>
-        <div class="full" style="grid-column:1/-1"><div class="detail-label">Delivery Address</div><div class="detail-val">📍 ${o.customer.address}, ${o.customer.city} — ${o.customer.pin}, ${o.customer.state||'Tamil Nadu'}</div></div>
+        <div><div class="detail-label">Phone</div><div class="detail-val">📞 ${o.customer?.phone||'—'}</div></div>
+        <div><div class="detail-label">Email</div><div class="detail-val">📧 ${o.customer?.email||'—'}</div></div>
+        <div style="grid-column:1/-1"><div class="detail-label">Delivery Address</div><div class="detail-val">📍 ${o.customer?.address||''}, ${o.customer?.city||''} — ${o.customer?.pin||''}, ${o.customer?.state||'Tamil Nadu'}</div></div>
       </div>
       <div class="order-items-block">
         ${(o.items||[]).map(i=>`• ${i.name} × ${i.qty} = ₹${i.price*i.qty}`).join('<br/>')}
       </div>
       <div class="order-payment-proof">
         💳 Payment: <strong>${(o.payment||'UPI').toUpperCase()}</strong>
-        ${o.upiRef?` · UPI Ref: <strong>${o.upiRef}</strong>`:''}
+        ${o.upiRef&&o.upiRef!=='PAID-NO-REF'?` · UPI Ref: <strong>${o.upiRef}</strong>`:''}
         ${o.bankRef?` · Bank Ref: <strong>${o.bankRef}</strong>`:''}
-        <br/>🚚 Delivery: <strong>${o.deliveryFee===0?'FREE (Tamil Nadu)':'₹'+o.deliveryFee+' (Outside TN'}</strong>
+        <br/>🚚 Delivery: <strong>${isFree?'FREE (Tamil Nadu)':'₹'+fee+' (Outside TN)'}</strong>
         · <strong>Total: ₹${o.total}</strong>
       </div>
       <div class="order-actions-row">
-        <button class="btn-os btn-os-confirm" onclick="updateOrderStatus('${o.id}','confirmed')">✓ Confirm</button>
-        <button class="btn-os btn-os-ship" onclick="updateOrderStatus('${o.id}','shipped')">🚚 Shipped</button>
-        <button class="btn-os btn-os-deliver" onclick="updateOrderStatus('${o.id}','delivered')">✅ Delivered</button>
-        <button class="btn-os btn-os-cancel" onclick="updateOrderStatus('${o.id}','cancelled')">✗ Cancel</button>
-        <button class="btn-os btn-os-wa" onclick="whatsappCustomer('${o.customer.phone}','${o.id}','${o.status||'pending'}')">📲 WA Customer</button>
+        <button class="btn-os btn-os-confirm" onclick="updateOrderStatus(${realIdx},'confirmed')">✓ Confirm</button>
+        <button class="btn-os btn-os-ship"    onclick="updateOrderStatus(${realIdx},'shipped')">🚚 Shipped</button>
+        <button class="btn-os btn-os-deliver" onclick="updateOrderStatus(${realIdx},'delivered')">✅ Delivered</button>
+        <button class="btn-os btn-os-cancel"  onclick="updateOrderStatus(${realIdx},'cancelled')">✗ Cancel</button>
+        <button class="btn-os btn-os-wa"      onclick="whatsappCustomer(${realIdx})">📲 WA Customer</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
-function updateOrderStatus(orderId,status){
-  const o=allOrders.find(x=>x.id===orderId);if(!o)return;
+
+function updateOrderStatus(idx, status){
+  const o=allOrders[idx]; if(!o) return;
   o.status=status;
   try{localStorage.setItem('bb_all_orders',JSON.stringify(allOrders));}catch(e){}
-  renderAdminOrders();showToast(`✅ Order ${orderId} → ${status.toUpperCase()}`);
-  // Notify customer on WhatsApp if delivered/shipped
+  // Also update in user's order list
+  try{
+    const uKey='bb_user_orders_'+(o.customer?.email||'guest');
+    let uOrders=JSON.parse(localStorage.getItem(uKey)||'[]');
+    const uo=uOrders.find(x=>x.id===o.id);
+    if(uo){uo.status=status;localStorage.setItem(uKey,JSON.stringify(uOrders));}
+  }catch(e){}
+  renderAdminOrders();
+  showToast(`✅ Order ${o.id} → ${status.toUpperCase()}`);
   if(status==='shipped'||status==='delivered'){
-    const msg=encodeURIComponent(`🌿 *BAMOOBUSH Update*\nHi ${o.customer.name}! Your order #${o.id} has been *${status}*.\nThank you for shopping with us!`);
-    window.open(`https://wa.me/${o.customer.phone.replace(/\D/g,'')}?text=${msg}`,'_blank');
+    const msg=encodeURIComponent(`🌿 *BAMOOBUSH Update*\nHi ${o.customer.name}! Your order #${o.id} has been *${status}*.\nThank you for shopping with us! 🌿`);
+    window.open(`https://wa.me/${(o.customer.phone||'').replace(/\D/g,'')}?text=${msg}`,'_blank');
   }
 }
-function whatsappCustomer(phone,orderId,status){
-  const clean=phone.replace(/\D/g,'');
-  const msg=encodeURIComponent(`🌿 Hi! Regarding your BAMOOBUSH Order #${orderId} — status: ${status.toUpperCase()}. How can I help you?`);
+
+function exportOrdersCSV(){
+  if(!allOrders.length){showToast('No orders to export.');return;}
+  const rows=[['Order ID','Date','Name','Phone','Email','Address','City','PIN','State','Items','Payment','UPI Ref','Bank Ref','Delivery Fee','Total','Status']];
+  allOrders.forEach(o=>{
+    const items=(o.items||[]).map(i=>`${i.name} x${i.qty}`).join(' | ');
+    rows.push([
+      o.id, o.date,
+      o.customer?.name||'', o.customer?.phone||'', o.customer?.email||'',
+      o.customer?.address||'', o.customer?.city||'', o.customer?.pin||'', o.customer?.state||'Tamil Nadu',
+      items, o.payment||'', o.upiRef||'', o.bankRef||'',
+      o.deliveryFee, o.total, o.status||'pending'
+    ]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='BAMOOBUSH_Orders_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  showToast('✅ Orders exported as CSV!');
+}
+
+function whatsappCustomer(idx){
+  const o=allOrders[idx]; if(!o) return;
+  const clean=(o.customer?.phone||'').replace(/\D/g,'');
+  const msg=encodeURIComponent(`🌿 Hi ${o.customer.name}! Regarding your BAMOOBUSH Order #${o.id} (Status: ${(o.status||'pending').toUpperCase()}). How can I help you?`);
   window.open(`https://wa.me/${clean}?text=${msg}`,'_blank');
 }
 
@@ -1794,7 +1859,10 @@ renderProducts();updateCartUI();updateAuthUI();
         <div class="bb-chat-status">Typically replies instantly</div>
       </div>
     </div>
-    <button class="bb-chat-close" onclick="toggleChatbot()">×</button>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button onclick="bbRestartChat()" title="Restart chat" style="background:rgba(255,255,255,.12);border:none;border-radius:20px;color:rgba(240,235,224,.8);font-size:.7rem;font-family:'Jost',sans-serif;padding:.28rem .7rem;cursor:pointer;letter-spacing:.04em;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.22)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">↺ Restart</button>
+      <button class="bb-chat-close" onclick="toggleChatbot()">×</button>
+    </div>
   </div>
   <div id="bb-chat-messages"></div>
   <div class="bb-quick-btns" id="bbQuickBtns">
@@ -1825,9 +1893,23 @@ function toggleChatbot() {
   document.getElementById('bb-chatbox').classList.toggle('open', bbChatOpen);
   document.querySelector('#bb-chat-btn .chat-badge').style.display = 'none';
   if (bbChatOpen && bbChatHistory.length === 0) {
-    setTimeout(() => bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?"), 300);
+    setTimeout(() => {
+      bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?");
+      setTimeout(() => bbAddMsg('bot', '🔄 If you ever want to start over, just tap the <strong>↺ Restart</strong> button at the top to clear the chat and begin fresh!'), 900);
+    }, 300);
   }
   if (bbChatOpen) document.getElementById('bb-chat-input').focus();
+}
+
+function bbRestartChat() {
+  bbChatHistory = [];
+  document.getElementById('bb-chat-messages').innerHTML = '';
+  document.getElementById('bbQuickBtns').style.display = 'flex';
+  document.getElementById('bb-chat-input').value = '';
+  setTimeout(() => {
+    bbAddMsg('bot', "👋 Hi! I'm the BAMOOBUSH assistant. I'm here to help you with our bamboo & natural products, delivery, orders, and more. How can I help you today?");
+    setTimeout(() => bbAddMsg('bot', '🔄 Need to start over at any point? Just tap the <strong>↺ Restart</strong> button at the top to clear the chat and begin fresh!'), 800);
+  }, 200);
 }
 
 function bbAddMsg(role, text) {
