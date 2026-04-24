@@ -6,6 +6,7 @@
 <title>BAMOOBUSH – Nature · Pure · Refined</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -567,6 +568,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
       <div class="form-group">
         <label>Payment Method</label>
         <select id="cPayment" onchange="handlePaymentChange()">
+          <option value="razorpay">💳 Pay Online — Razorpay (Cards / UPI / Wallets / NetBanking)</option>
           <option value="upi">UPI — GPay / PhonePe / Paytm / BHIM</option>
           <option value="bank">Bank Transfer (NEFT/IMPS)</option>
         </select>
@@ -671,6 +673,21 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
               <button class="btn-try-another" onclick="goBackToAppPicker()">← Try another UPI app</button>
             </div>
           </div>
+        </div>
+      </div>
+      <!-- RAZORPAY -->
+      <div id="razorpaySection" style="display:block">
+        <div style="background:linear-gradient(135deg,#f0faf5,#e8f5e9);border:1.5px solid #b2dfdb;border-radius:12px;padding:1.2rem 1.3rem;text-align:center">
+          <div style="font-size:2rem;margin-bottom:.4rem">💳</div>
+          <p style="font-weight:700;color:var(--green);font-size:.97rem;margin-bottom:.3rem">Pay Securely with Razorpay</p>
+          <p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Accepts <strong>Cards, UPI, Net Banking, Wallets</strong> &amp; more. 100% secure &amp; instant confirmation.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-bottom:.9rem">
+            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">💳 Debit/Credit Card</span>
+            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">📱 UPI</span>
+            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">🏦 Net Banking</span>
+            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">👛 Wallets</span>
+          </div>
+          <div style="font-size:.74rem;color:#888;margin-top:.5rem">🔒 256-bit SSL encrypted · Powered by Razorpay</div>
         </div>
       </div>
       <!-- BANK -->
@@ -994,14 +1011,21 @@ function handlePaymentChange(){
   const val=document.getElementById('cPayment').value;
   document.getElementById('upiSection').style.display=val==='upi'?'block':'none';
   document.getElementById('bankSection').style.display=val==='bank'?'block':'none';
+  document.getElementById('razorpaySection').style.display=val==='razorpay'?'block':'none';
   // Reset UPI state when switching
   if(val==='upi'){
     resetUPIFlow();
     updateUPIAmount();
   }
-  // Reset payment gating
+  // Razorpay and bank: enable place order immediately
   document.getElementById('placeOrderBtn').disabled=val==='upi';
-  if(val==='bank') document.getElementById('placeOrderBtn').disabled=false;
+  if(val==='bank'||val==='razorpay') document.getElementById('placeOrderBtn').disabled=false;
+  // Update button label
+  if(val==='razorpay'){
+    document.getElementById('placeOrderBtn').textContent='💳 Pay with Razorpay';
+  } else {
+    document.getElementById('placeOrderBtn').textContent='🌿 Place Order';
+  }
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice) notice.style.display='none';
 }
@@ -1161,6 +1185,55 @@ function generateQR(){
 }
 
 // ══════════════════════════════════════════════
+//  RAZORPAY
+// ══════════════════════════════════════════════
+const RAZORPAY_KEY_ID = 'rzp_live_ShNBAGZFE1433g'; // ← Replace with your live key from Razorpay Dashboard
+
+function launchRazorpay(){
+  const isTN=document.getElementById('cState').value==='TN';
+  const fee=isTN?0:DELIVERY_FEE;
+  const total=(cartSubtotal()+fee)*100; // Razorpay expects paise (1 INR = 100 paise)
+  const name=document.getElementById('cName').value;
+  const email=document.getElementById('cEmail').value;
+  const phone=document.getElementById('cPhone').value;
+
+  const options={
+    key: RAZORPAY_KEY_ID,
+    amount: total,
+    currency: 'INR',
+    name: 'BAMOOBUSH',
+    description: 'Nature · Pure · Refined',
+    image: '', // optional: your logo URL
+    prefill: { name, email, contact: phone.replace(/\s/g,'') },
+    notes: {
+      delivery_address: document.getElementById('cAddress').value+', '+document.getElementById('cCity').value,
+      items: cart.map(i=>i.name+' x'+i.qty).join(', ')
+    },
+    theme: { color: '#1a4a2e' },
+    handler: function(response){
+      // Payment successful — response.razorpay_payment_id is the payment ID
+      document.getElementById('cUPIRef').value = response.razorpay_payment_id || 'RZPY-SUCCESS';
+      finalizePlaceOrder('razorpay', response.razorpay_payment_id||'');
+    },
+    modal: {
+      ondismiss: function(){
+        showToast('⚠️ Payment cancelled. Try again or choose another method.');
+      }
+    }
+  };
+
+  if(typeof Razorpay === 'undefined'){
+    showToast('⚠️ Razorpay could not load. Check your internet connection.');
+    return;
+  }
+  const rzp = new Razorpay(options);
+  rzp.on('payment.failed', function(response){
+    showToast('❌ Payment failed: '+response.error.description);
+  });
+  rzp.open();
+}
+
+// ══════════════════════════════════════════════
 //  CHECKOUT
 // ══════════════════════════════════════════════
 function openCheckout(){
@@ -1173,12 +1246,15 @@ function openCheckout(){
   refreshCheckoutTotal();
   document.getElementById('checkoutTitle').textContent='Complete Your Order';
   document.getElementById('checkoutModal').classList.add('open');
-  // Show UPI section by default (first option)
-  document.getElementById('upiSection').style.display='block';
+  // Default to Razorpay
+  document.getElementById('cPayment').value='razorpay';
+  document.getElementById('razorpaySection').style.display='block';
+  document.getElementById('upiSection').style.display='none';
   document.getElementById('bankSection').style.display='none';
+  document.getElementById('placeOrderBtn').textContent='💳 Pay with Razorpay';
   // Reset UPI flow & gate place order button
   resetUPIFlow();
-  document.getElementById('placeOrderBtn').disabled=true;
+  document.getElementById('placeOrderBtn').disabled=false;
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice) notice.style.display='none';
   updateUPIAmount();
@@ -1212,6 +1288,11 @@ function placeOrder(){
     showToast('⚠️ Please enter your Bank Transaction Reference Number.');
     return;
   }
+  // RAZORPAY FLOW
+  if(payMethod==='razorpay'){
+    launchRazorpay();
+    return;
+  }
   const btn=document.getElementById('placeOrderBtn');
   btn.disabled=true;btn.textContent='⏳ Processing...';
   const isTN=document.getElementById('cState').value==='TN';
@@ -1232,6 +1313,31 @@ function placeOrder(){
     items:cart.map(i=>{return{name:i.name,qty:i.qty,price:i.price,img:i.img||'',sub:i.sub||''}}),
     subtotal:sub, deliveryFee:fee, total:sub+fee, status:'pending'
   };
+  finalizePlaceOrder(payMethod, upiRef, bankRef, orderData);
+}
+
+function finalizePlaceOrder(payMethod, upiRef, bankRef, orderDataArg){
+  const btn=document.getElementById('placeOrderBtn');
+  btn.disabled=true;btn.textContent='⏳ Processing...';
+  const isTN=document.getElementById('cState')?.value==='TN';
+  const fee=isTN?0:DELIVERY_FEE;
+  const sub=cartSubtotal();
+  const orderData=orderDataArg||{
+    id:'BB'+Date.now(), date:new Date().toLocaleDateString('en-IN'),
+    customer:{
+      name:document.getElementById('cName').value,
+      phone:document.getElementById('cPhone').value,
+      email:document.getElementById('cEmail').value,
+      address:document.getElementById('cAddress').value,
+      city:document.getElementById('cCity').value,
+      pin:document.getElementById('cPin').value,
+      state:isTN?'Tamil Nadu':document.getElementById('cState')?.options[document.getElementById('cState').selectedIndex].text
+    },
+    payment:payMethod, upiRef, bankRef,
+    items:cart.map(i=>{return{name:i.name,qty:i.qty,price:i.price,img:i.img||'',sub:i.sub||''}}),
+    subtotal:sub, deliveryFee:fee, total:sub+fee,
+    status: payMethod==='razorpay'?'paid':'pending'
+  };
   allOrders.unshift(orderData);
   try{localStorage.setItem('bb_all_orders',JSON.stringify(allOrders));}catch(e){}
   // Also save to user's orders
@@ -1239,7 +1345,7 @@ function placeOrder(){
   let userOrders=[]; try{userOrders=JSON.parse(localStorage.getItem(userOrdersKey)||'[]');}catch(e){}
   userOrders.unshift(orderData);
   try{localStorage.setItem(userOrdersKey,JSON.stringify(userOrders));}catch(e){}
-
+  const rzpLabel=payMethod==='razorpay'?`\n💳 *Razorpay Payment ID:* ${upiRef}`:'';
   const wa_msg=encodeURIComponent(
     `🛒 *NEW ORDER — BAMOOBUSH*\n━━━━━━━━━━━━━━━━━━━\n`+
     `*Order ID:* ${orderData.id}\n*Date:* ${orderData.date}\n\n`+
@@ -1248,17 +1354,19 @@ function placeOrder(){
     `📧 *Email:* ${orderData.customer.email}\n\n`+
     `📍 *Delivery Address:*\n${orderData.customer.address}, ${orderData.customer.city} — ${orderData.customer.pin}\n${orderData.customer.state}\n\n`+
     `🛍 *Items:*\n${orderData.items.map(i=>`• ${i.name} × ${i.qty} = ₹${i.price*i.qty}`).join('\n')}\n\n`+
-    `💳 *Payment:* ${payMethod.toUpperCase()}`+
-    (upiRef?`\n🔑 *UPI Ref:* ${upiRef}`:'')+(bankRef?`\n🔑 *Bank Ref:* ${bankRef}`:'')+
+    `💳 *Payment:* ${payMethod.toUpperCase()}`+rzpLabel+
+    (upiRef&&payMethod!=='razorpay'?`\n🔑 *UPI Ref:* ${upiRef}`:'')+(bankRef?`\n🔑 *Bank Ref:* ${bankRef}`:'')+
     `\n🚚 *Delivery:* ${fee===0?'FREE (Tamil Nadu)':'₹'+fee+' (Outside TN)'}\n`+
     `\n💰 *TOTAL: ₹${orderData.total}*`
   );
+  const isRzp=payMethod==='razorpay';
   setTimeout(()=>{
     cart=[];persistCart();updateCartUI();
     document.getElementById('checkoutBody').innerHTML=`
       <div class="success-block">
-        <div class="success-icon">🌿</div>
-        <h3>Order Placed!</h3>
+        <div class="success-icon">${isRzp?'💳':'🌿'}</div>
+        <h3>${isRzp?'Payment Successful!':'Order Placed!'}</h3>
+        ${isRzp?`<p style="font-size:.78rem;background:#d1e7dd;color:#0f5132;border-radius:6px;padding:.5rem .8rem;margin-bottom:.6rem;font-weight:600">✅ Paid via Razorpay · ID: ${upiRef}</p>`:''}
         <p style="font-weight:600;color:var(--green);margin-bottom:.4rem">Order ID: ${orderData.id}</p>
         <p>Thank you, <strong>${orderData.customer.name}</strong>! Your order is confirmed.</p>
         <p style="margin:1rem 0;padding:.8rem;background:var(--cream);border-radius:6px;font-size:.88rem">${orderData.customer.address}, ${orderData.customer.city} — ${orderData.customer.pin}</p>
@@ -1272,10 +1380,10 @@ function placeOrder(){
         <button class="btn-gold" onclick="closeCheckout()" style="margin-top:1rem;width:100%">Continue Shopping</button>
       </div>`;
     document.getElementById('checkoutTitle').textContent='Order Confirmed ✓';
-    showToast('🎉 Order placed! Tap the WhatsApp button to confirm.');
+    showToast(isRzp?'🎉 Payment successful! Order confirmed.':'🎉 Order placed! Tap the WhatsApp button to confirm.');
     btn.disabled=false;btn.textContent='🌿 Place Order';
     setTimeout(()=>{if(/Mobi|Android/i.test(navigator.userAgent))window.open('https://wa.me/'+OWNER_WHATSAPP+'?text='+wa_msg,'_blank');},1500);
-  },1200);
+  },isRzp?200:1200);
 }
 
 // ══════════════════════════════════════════════
