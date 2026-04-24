@@ -569,12 +569,10 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
         <label>Payment Method</label>
         <select id="cPayment" onchange="handlePaymentChange()">
           <option value="razorpay">💳 Pay Online — Razorpay (Cards / UPI / Wallets / NetBanking)</option>
-          <option value="upi">UPI — GPay / PhonePe / Paytm / BHIM</option>
-          <option value="bank">Bank Transfer (NEFT/IMPS)</option>
         </select>
       </div>
-      <!-- UPI PAYMENT — Amazon/Zepto Style -->
-      <div id="upiSection" style="display:none">
+      <!-- UPI PAYMENT — disabled, using Razorpay only -->
+      <div id="upiSection" style="display:none!important;visibility:hidden;pointer-events:none">
         <div class="upi-section-wrap">
           <!-- STEP 1: App picker -->
           <div class="upi-step active" id="upiStep1">
@@ -690,8 +688,8 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
           <div style="font-size:.74rem;color:#888;margin-top:.5rem">🔒 256-bit SSL encrypted · Powered by Razorpay</div>
         </div>
       </div>
-      <!-- BANK -->
-      <div id="bankSection" style="display:none">
+      <!-- BANK — disabled, using Razorpay only -->
+      <div id="bankSection" style="display:none!important;visibility:hidden;pointer-events:none">
         <div class="upi-info-block" style="text-align:left">
           <p style="font-size:.82rem;font-weight:600;color:var(--green);margin-bottom:.6rem">🏦 Bank Transfer Details</p>
           <p style="font-size:.82rem;color:var(--muted);line-height:1.9">
@@ -1008,24 +1006,12 @@ function switchToBankTransfer(){
   showToast('🏦 Switched to Bank Transfer — no limits!');
 }
 function handlePaymentChange(){
-  const val=document.getElementById('cPayment').value;
-  document.getElementById('upiSection').style.display=val==='upi'?'block':'none';
-  document.getElementById('bankSection').style.display=val==='bank'?'block':'none';
-  document.getElementById('razorpaySection').style.display=val==='razorpay'?'block':'none';
-  // Reset UPI state when switching
-  if(val==='upi'){
-    resetUPIFlow();
-    updateUPIAmount();
-  }
-  // Razorpay and bank: enable place order immediately
-  document.getElementById('placeOrderBtn').disabled=val==='upi';
-  if(val==='bank'||val==='razorpay') document.getElementById('placeOrderBtn').disabled=false;
-  // Update button label
-  if(val==='razorpay'){
-    document.getElementById('placeOrderBtn').textContent='💳 Pay with Razorpay';
-  } else {
-    document.getElementById('placeOrderBtn').textContent='🌿 Place Order';
-  }
+  // Only Razorpay is available — always show Razorpay section
+  document.getElementById('upiSection').style.display='none';
+  document.getElementById('bankSection').style.display='none';
+  document.getElementById('razorpaySection').style.display='block';
+  document.getElementById('placeOrderBtn').disabled=false;
+  document.getElementById('placeOrderBtn').textContent='💳 Pay with Razorpay';
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice) notice.style.display='none';
 }
@@ -1246,7 +1232,7 @@ function openCheckout(){
   refreshCheckoutTotal();
   document.getElementById('checkoutTitle').textContent='Complete Your Order';
   document.getElementById('checkoutModal').classList.add('open');
-  // Default to Razorpay
+  // Only Razorpay available
   document.getElementById('cPayment').value='razorpay';
   document.getElementById('razorpaySection').style.display='block';
   document.getElementById('upiSection').style.display='none';
@@ -1276,23 +1262,10 @@ function placeOrder(){
     if(!ok)valid=false;
   });
   if(!valid)return;
-  const payMethod=document.getElementById('cPayment').value;
-  const upiRef=(document.getElementById('cUPIRef')||{}).value||'';
-  const bankRef=(document.getElementById('cBankRef')||{}).value||'';
-  // Validate payment-specific fields
-  if(payMethod==='upi'&&!upiPaymentConfirmed){
-    showToast('⚠️ Please complete UPI payment and tap "I\'ve Completed the Payment".');
-    return;
-  }
-  if(payMethod==='bank'&&!bankRef.trim()){
-    showToast('⚠️ Please enter your Bank Transaction Reference Number.');
-    return;
-  }
-  // RAZORPAY FLOW
-  if(payMethod==='razorpay'){
-    launchRazorpay();
-    return;
-  }
+  const payMethod='razorpay';
+  // RAZORPAY FLOW — only payment method
+  launchRazorpay();
+  return;
   const btn=document.getElementById('placeOrderBtn');
   btn.disabled=true;btn.textContent='⏳ Processing...';
   const isTN=document.getElementById('cState').value==='TN';
@@ -2109,12 +2082,12 @@ function bbGetReply(msg) {
 
   // Payment
   if (/pay|payment|upi|gpay|phonepe|paytm|bhim|bank|transfer|method/i.test(q)) {
-    return `💳 We accept:<br>• <strong>UPI</strong> — GPay, PhonePe, Paytm, BHIM, Amazon Pay<br>• <strong>Bank Transfer</strong> — NEFT/IMPS (SBI)<br><br>UPI ID: <strong>abrahamhin19-1@oksbi</strong><br>Just select your method at checkout!`;
+    return `💳 We accept payments via <strong>Razorpay</strong> — which supports Cards (Debit/Credit), UPI, Net Banking, and Wallets. 100% secure and instant confirmation at checkout!`;
   }
 
   // Order process
   if (/order|buy|purchase|how to|place|checkout|cart/i.test(q)) {
-    return `🛒 Ordering is easy!<br>1. Browse products and click <strong>Add to Cart</strong><br>2. Open cart and click <strong>Proceed to Checkout</strong><br>3. Fill in your details & choose UPI or Bank Transfer<br>4. Pay and click <strong>Place Order</strong> ✅<br><br>You'll get a WhatsApp confirmation from us!`;
+    return `🛒 Ordering is easy!<br>1. Browse products and click <strong>Add to Cart</strong><br>2. Open cart and click <strong>Proceed to Checkout</strong><br>3. Fill in your details<br>4. Pay securely via <strong>Razorpay</strong> (Cards, UPI, Wallets, Net Banking) ✅<br><br>You'll get a WhatsApp confirmation from us!`;
   }
 
   // Track order / order status
