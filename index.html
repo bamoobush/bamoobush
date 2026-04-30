@@ -6,6 +6,7 @@
 <title>BAMOOBUSH – Nature · Pure · Refined</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -637,7 +638,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
 
             <button class="btn-pay-now" id="btnProceedToPay" onclick="proceedToPay()" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Pay ₹<span id="upiPayAmount">0</span> Securely
+              Pay Now — ₹<span id="upiPayAmount">0</span>
             </button>
             <div style="margin-top:.5rem;text-align:center;font-size:.72rem;color:var(--muted)">🔒 Secure payment · Your data is protected</div>
           </div>
@@ -672,7 +673,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
         ✅ Payment confirmed! Please click Place Order to complete.
       </div>
       <input type="hidden" id="cUPIRef" value=""/>
-      <button class="place-order-btn" onclick="placeOrder()" id="placeOrderBtn" disabled>🔒 Place Order</button>
+      <button class="place-order-btn" onclick="placeOrder()" id="placeOrderBtn">🔒 Place Order</button>
     </div>
   </div>
 </div>
@@ -1027,21 +1028,23 @@ function useManualUPI(){
 
 function proceedToPay(){
   if(!selectedUPIApp){showToast('⚠️ Please select a UPI app or enter UPI ID');return;}
-  const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
-  const meta=UPI_APP_META[selectedUPIApp];
-  // Switch to step 2
-  document.getElementById('upiStep1').classList.remove('active');
-  document.getElementById('upiStep2').classList.add('active');
-  document.getElementById('awaitAmount').textContent='₹'+total;
-  const amtBtn=document.getElementById('awaitAmountBtn');
-  if(amtBtn) amtBtn.textContent=total;
-  document.getElementById('awaitAppBadge').textContent=(meta.emoji||'📱')+' '+meta.name;
-  document.getElementById('openAppName').textContent=meta.name;
-  document.getElementById('awaitIcon').textContent=selectedUPIApp==='qr'?'📷':'📲';
-  // Hide the open app button for QR flow
-  document.getElementById('btnOpenApp').style.display=selectedUPIApp==='qr'?'none':'flex';
-  // Auto-open the app immediately
-  if(selectedUPIApp!=='qr') setTimeout(()=>openUPIApp(), 400);
+  if(selectedUPIApp==='qr'){
+    // QR flow stays as-is — user scans and confirms manually
+    const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
+    const meta=UPI_APP_META['qr'];
+    document.getElementById('upiStep1').classList.remove('active');
+    document.getElementById('upiStep2').classList.add('active');
+    document.getElementById('awaitAmount').textContent='₹'+total;
+    const amtBtn=document.getElementById('awaitAmountBtn');
+    if(amtBtn) amtBtn.textContent=total;
+    document.getElementById('awaitAppBadge').textContent='📷 Scan QR';
+    document.getElementById('openAppName').textContent='Scan QR';
+    document.getElementById('awaitIcon').textContent='📷';
+    document.getElementById('btnOpenApp').style.display='none';
+    return;
+  }
+  // All other UPI apps → go through Razorpay (handles retries, bank errors, fallbacks)
+  launchRazorpayUPI();
 }
 
 function openUPIApp(){
@@ -1150,17 +1153,34 @@ function generateQR(){
 }
 
 // ══════════════════════════════════════════════
-//  RAZORPAY
+//  RAZORPAY — UPI PAYMENT ENGINE (hidden from customer)
 // ══════════════════════════════════════════════
-const RAZORPAY_KEY_ID = 'rzp_live_ShNBAGZFE1433g'; // ← Replace with your live key from Razorpay Dashboard
+const RAZORPAY_KEY_ID = 'rzp_live_ShNBAGZFE1433g';
 
-function launchRazorpay(){
+// Map our app keys to Razorpay's UPI app names
+const RZP_APP_MAP = {
+  gpay:      'google_pay',
+  phonepe:   'phonepe',
+  paytm:     'paytm',
+  bhim:      'bhim',
+  amazonpay: 'amazon',
+  manual:    null  // manual UPI ID — no specific app
+};
+
+function launchRazorpayUPI(){
   const isTN=document.getElementById('cState').value==='TN';
   const fee=isTN?0:DELIVERY_FEE;
-  const total=(cartSubtotal()+fee)*100; // Razorpay expects paise (1 INR = 100 paise)
+  const total=(cartSubtotal()+fee)*100; // paise
   const name=document.getElementById('cName').value;
   const email=document.getElementById('cEmail').value;
-  const phone=document.getElementById('cPhone').value;
+  const phone=document.getElementById('cPhone').value.replace(/\s/g,'');
+  const rzpApp=RZP_APP_MAP[selectedUPIApp]||null;
+  const manualUpiId=selectedUPIApp==='manual'?document.getElementById('manualUpiId')?.value.trim():'';
+
+  if(typeof Razorpay==='undefined'){
+    showToast('⚠️ Payment service could not load. Please check your internet and try again.');
+    return;
+  }
 
   const options={
     key: RAZORPAY_KEY_ID,
@@ -1168,35 +1188,53 @@ function launchRazorpay(){
     currency: 'INR',
     name: 'BAMOOBUSH',
     description: 'Nature · Pure · Refined',
-    image: '', // optional: your logo URL
-    prefill: { name, email, contact: phone.replace(/\s/g,'') },
+    prefill: { name, email, contact: phone, method:'upi', vpa: manualUpiId||'' },
     notes: {
       delivery_address: document.getElementById('cAddress').value+', '+document.getElementById('cCity').value,
       items: cart.map(i=>i.name+' x'+i.qty).join(', ')
     },
-    theme: { color: '#1a4a2e' },
+    theme: { color:'#1a4a2e', hide_topbar: false },
+    // Open directly to UPI tab
+    config: {
+      display: {
+        blocks: { upi: { name:'Pay via UPI', instruments:[{ method:'upi' }] } },
+        sequence: ['block.upi'],
+        preferences: { show_default_blocks: false }
+      }
+    },
     handler: function(response){
-      // Payment successful — response.razorpay_payment_id is the payment ID
-      document.getElementById('cUPIRef').value = response.razorpay_payment_id || 'RZPY-SUCCESS';
-      finalizePlaceOrder('razorpay', response.razorpay_payment_id||'');
+      // Payment successful via Razorpay
+      const payId = response.razorpay_payment_id || 'RZP-OK';
+      document.getElementById('cUPIRef').value = payId;
+      // Validate form then finalize
+      if(!validateCheckoutForm()) return;
+      const btn=document.getElementById('placeOrderBtn');
+      btn.disabled=true; btn.textContent='⏳ Processing...';
+      finalizePlaceOrder('upi', payId, '');
     },
     modal: {
       ondismiss: function(){
-        showToast('⚠️ Payment cancelled. Try again or choose another method.');
+        showToast('Payment cancelled — pick your UPI app and try again.');
+        // Go back to app picker
+        resetUPIFlow();
       }
     }
   };
 
-  if(typeof Razorpay === 'undefined'){
-    showToast('⚠️ Razorpay could not load. Check your internet connection.');
-    return;
+  // If a specific app was chosen, tell Razorpay to open that app directly
+  if(rzpApp){
+    options.config.display.blocks.upi.instruments=[{ method:'upi', apps:[rzpApp] }];
   }
+
   const rzp = new Razorpay(options);
-  rzp.on('payment.failed', function(response){
-    showToast('❌ Payment failed: '+response.error.description);
+  rzp.on('payment.failed', function(resp){
+    showToast('❌ Payment failed: '+resp.error.description+' — please try another UPI app.');
+    resetUPIFlow();
   });
   rzp.open();
 }
+
+function launchRazorpay(){ launchRazorpayUPI(); } // legacy alias
 
 // ══════════════════════════════════════════════
 //  CHECKOUT
@@ -1218,16 +1256,16 @@ function openCheckout(){
   const bankSec=document.getElementById('bankSection');
   if(bankSec) bankSec.style.display='none';
   document.getElementById('placeOrderBtn').textContent='🔒 Place Order';
-  // Reset UPI flow & gate place order button
+  // Reset UPI flow
   resetUPIFlow();
-  document.getElementById('placeOrderBtn').disabled=true;
+  document.getElementById('placeOrderBtn').disabled=false;
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice) notice.style.display='none';
   updateUPIAmount();
 }
 function closeCheckout(){document.getElementById('checkoutModal').classList.remove('open');}
 
-function placeOrder(){
+function validateCheckoutForm(){
   let valid=true;
   const fields=[
     {id:'cName',fg:'fg-name',ok:v=>v.trim().length>1},
@@ -1241,11 +1279,27 @@ function placeOrder(){
     document.getElementById(f.fg).classList.toggle('has-error',!ok);
     if(!ok)valid=false;
   });
-  if(!valid)return;
-  const payMethod='upi';
-  const upiRef=document.getElementById('cUPIRef')?.value||'';
-  if(!upiRef){showToast('⚠️ Please complete your UPI payment and confirm it first.');return;}
-  const btn=document.getElementById('placeOrderBtn');
+  return valid;
+}
+
+function placeOrder(){
+  if(!validateCheckoutForm()) return;
+  if(!selectedUPIApp){
+    showToast('⚠️ Please select a UPI app above first.');
+    return;
+  }
+  // For QR flow — check manual confirmation
+  if(selectedUPIApp==='qr'){
+    const upiRef=document.getElementById('cUPIRef')?.value||'';
+    if(!upiRef){ showToast('⚠️ Please confirm your payment first.'); return; }
+    const btn=document.getElementById('placeOrderBtn');
+    btn.disabled=true; btn.textContent='⏳ Processing...';
+    finalizePlaceOrder('upi', upiRef, '');
+    return;
+  }
+  // All other UPI apps → launch Razorpay
+  launchRazorpayUPI();
+}
   btn.disabled=true;btn.textContent='⏳ Processing...';
   const isTN=document.getElementById('cState').value==='TN';
   const fee=isTN?0:DELIVERY_FEE;
