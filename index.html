@@ -6,7 +6,7 @@
 <title>BAMOOBUSH – Nature · Pure · Refined</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -565,46 +565,46 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
       <div id="deliveryNotice" style="padding:.6rem .9rem;border-radius:6px;font-size:.82rem;margin-bottom:.8rem;background:#d1e7dd;color:#0f5132;font-weight:500">
         🚚 Free delivery within Tamil Nadu!
       </div>
-      <div class="form-group">
-        <label>Payment Method</label>
-        <select id="cPayment" onchange="handlePaymentChange()">
-          <option value="razorpay">💳 Pay Online — Razorpay (Cards / UPI / Wallets / NetBanking)</option>
-        </select>
-      </div>
-      <!-- UPI PAYMENT — disabled, using Razorpay only -->
-      <div id="upiSection" style="display:none!important;visibility:hidden;pointer-events:none">
+      <!-- PAYMENT — UPI App picker (processed securely in the background) -->
+      <div id="upiSection">
         <div class="upi-section-wrap">
-          <!-- STEP 1: App picker -->
+          <!-- STEP 1: Choose UPI App -->
           <div class="upi-step active" id="upiStep1">
-            <div class="upi-apps-label">Pay using UPI App</div>
+            <div class="upi-apps-label">Choose your UPI App to Pay</div>
+            <!-- Amount display pill -->
+            <div style="text-align:center;margin-bottom:1rem">
+              <div style="display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,#1a4a2e,#2d6e46);color:white;border-radius:24px;padding:.5rem 1.4rem;font-size:1.05rem;font-weight:700;letter-spacing:.03em;box-shadow:0 4px 12px rgba(26,74,46,.25)">
+                💰 Pay ₹<span id="upiPayAmountPill">0</span>
+              </div>
+            </div>
             <div class="upi-app-grid">
               <button class="upi-app-btn" onclick="selectUPIApp('gpay')" id="upiAppGpay">
-                <div class="upi-app-icon" style="background:linear-gradient(135deg,#4285F4,#34A853,#FBBC05,#EA4335)">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15H9V8h2v9zm4 0h-2V8h2v9z"/></svg>
+                <div class="upi-app-icon" style="background:white;border:1px solid #eee">
+                  <svg viewBox="0 0 48 48" width="36" height="36" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M24 9.5c3.9 0 6.8 1.7 8.4 3.1l6.2-6.2C34.9 3.1 30 1 24 1 14.9 1 7.1 6.4 3.4 14.1l7.2 5.6C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.6c0-1.6-.1-2.8-.4-4H24v7.7h12.5c-.5 2.7-2.1 5-4.4 6.5l7 5.5c4.1-3.8 6.5-9.4 6.5-15.7z"/><path fill="#FBBC05" d="M10.6 28.3A14.9 14.9 0 0 1 9.5 24c0-1.5.3-3 .8-4.3l-7.2-5.6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l8-6.4z"/><path fill="#EA4335" d="M24 47c6 0 11-2 14.7-5.3l-7-5.5c-2 1.3-4.5 2.1-7.7 2.1-6.3 0-11.6-3.7-13.4-9.1l-8 6.4C6.1 42.7 14.5 47 24 47z"/></svg>
                 </div>
                 <span class="upi-app-name">Google Pay</span>
               </button>
               <button class="upi-app-btn" onclick="selectUPIApp('phonepe')" id="upiAppPhonepe">
                 <div class="upi-app-icon" style="background:#5f259f">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 7.5l-2 6-2.5-4-2.5 4-2-6h9z"/></svg>
+                  <svg viewBox="0 0 48 48" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="24" r="22" fill="#5f259f"/><path fill="white" d="M32 16h-6.5l-8 10V12h-4v24h4v-8l2.5-3L27 36h4.5l-8-13.5z"/></svg>
                 </div>
                 <span class="upi-app-name">PhonePe</span>
               </button>
               <button class="upi-app-btn" onclick="selectUPIApp('paytm')" id="upiAppPaytm">
                 <div class="upi-app-icon" style="background:#00b9f1">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                  <svg viewBox="0 0 48 48" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="10" fill="#00b9f1"/><text x="24" y="32" text-anchor="middle" font-size="18" font-weight="900" fill="white" font-family="Arial">P</text></svg>
                 </div>
                 <span class="upi-app-name">Paytm</span>
               </button>
               <button class="upi-app-btn" onclick="selectUPIApp('bhim')" id="upiAppBhim">
-                <div class="upi-app-icon" style="background:linear-gradient(135deg,#1a3fa0,#f97316)">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                <div class="upi-app-icon" style="background:linear-gradient(135deg,#1a3fa0,#0d6efd)">
+                  <svg viewBox="0 0 48 48" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="10" fill="url(#bg)"/><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a3fa0"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs><text x="24" y="32" text-anchor="middle" font-size="14" font-weight="900" fill="white" font-family="Arial">BHIM</text></svg>
                 </div>
                 <span class="upi-app-name">BHIM</span>
               </button>
               <button class="upi-app-btn" onclick="selectUPIApp('amazonpay')" id="upiAppAmazonpay">
                 <div class="upi-app-icon" style="background:#FF9900">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+                  <svg viewBox="0 0 48 48" width="34" height="34" xmlns="http://www.w3.org/2000/svg"><rect width="48" height="48" rx="10" fill="#FF9900"/><text x="24" y="20" text-anchor="middle" font-size="11" font-weight="900" fill="white" font-family="Arial">amazon</text><text x="24" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="white" font-family="Arial">pay</text></svg>
                 </div>
                 <span class="upi-app-name">Amazon Pay</span>
               </button>
@@ -617,7 +617,7 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
             </div>
 
             <!-- Manual UPI ID entry -->
-            <div class="upi-divider">or enter UPI ID</div>
+            <div class="upi-divider">or enter UPI ID manually</div>
             <div class="upi-id-input-wrap">
               <input type="text" id="manualUpiId" placeholder="yourname@upi / phone@okaxis" autocomplete="off"/>
               <button class="btn-upi-verify" onclick="useManualUPI()">Use</button>
@@ -637,78 +637,42 @@ footer{background:#0a1f10;color:rgba(240,235,224,.5);padding:4rem 3rem 2rem}
 
             <button class="btn-pay-now" id="btnProceedToPay" onclick="proceedToPay()" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Proceed to Pay ₹<span id="upiPayAmount">0</span>
+              Pay ₹<span id="upiPayAmount">0</span> Securely
             </button>
-            <div style="margin-top:.6rem;font-size:.73rem;color:var(--muted);text-align:center">
-              UPI limit exceeded? <button onclick="switchToBankTransfer()" style="background:none;border:none;color:var(--green);font-family:'Jost',sans-serif;font-size:.73rem;cursor:pointer;text-decoration:underline;padding:0;font-weight:600">Switch to Bank Transfer →</button>
-            </div>
+            <div style="margin-top:.5rem;text-align:center;font-size:.72rem;color:var(--muted)">🔒 Secure payment · Your data is protected</div>
           </div>
 
-          <!-- STEP 2: Awaiting payment confirmation -->
+          <!-- STEP 2: Open app confirmation -->
           <div class="upi-step" id="upiStep2">
             <div class="upi-awaiting">
               <div class="await-icon" id="awaitIcon">📲</div>
-              <h4>Complete Payment</h4>
+              <h4>Complete Payment in App</h4>
               <div class="await-amount" id="awaitAmount">₹0</div>
-              <div class="await-upi">Pay to: <strong>abrahamhin19-1@oksbi</strong> (BAMOOBUSH)</div>
+              <div class="await-upi" style="margin-bottom:.6rem">Amount is pre-filled in your app</div>
               <div class="await-app-badge" id="awaitAppBadge">📱 UPI App</div>
 
               <button class="btn-open-app" id="btnOpenApp" onclick="openUPIApp()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                Open <span id="openAppName">UPI App</span> to Pay
+                Open <span id="openAppName">UPI App</span> → Pay ₹<span id="awaitAmountBtn">0</span>
               </button>
 
               <button class="btn-paid-confirm" onclick="confirmPaymentDone()">
                 ✓ I've Completed the Payment
               </button>
-              <div class="await-timer" id="awaitTimerText">Waiting for payment confirmation…</div>
-              <!-- UPI LIMIT WARNING -->
-              <div style="margin-top:.9rem;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:.75rem 1rem;font-size:.79rem;color:#7a5c00;text-align:left;line-height:1.6">
-                ⚠️ <strong>Seeing a "limit exceeded" error?</strong><br/>
-                UPI apps have a daily limit (usually ₹1 lakh). If your payment is being declined, try a different UPI app or switch to <strong>Bank Transfer</strong> — it has no transaction limits.
-                <button onclick="switchToBankTransfer()" style="display:block;margin-top:.6rem;width:100%;background:var(--green);color:white;border:none;border-radius:6px;padding:.5rem;font-size:.78rem;font-family:\x27Jost\x27,sans-serif;font-weight:600;cursor:pointer;letter-spacing:.04em">🏦 Switch to Bank Transfer (No Limit)</button>
-              </div>
-              <button class="btn-try-another" onclick="goBackToAppPicker()">← Try another UPI app</button>
+              <div class="await-timer" id="awaitTimerText">Pay in your app, then tap the button above</div>
+              <button class="btn-try-another" onclick="goBackToAppPicker()">← Choose a different UPI app</button>
             </div>
           </div>
         </div>
       </div>
-      <!-- RAZORPAY -->
-      <div id="razorpaySection" style="display:block">
-        <div style="background:linear-gradient(135deg,#f0faf5,#e8f5e9);border:1.5px solid #b2dfdb;border-radius:12px;padding:1.2rem 1.3rem;text-align:center">
-          <div style="font-size:2rem;margin-bottom:.4rem">💳</div>
-          <p style="font-weight:700;color:var(--green);font-size:.97rem;margin-bottom:.3rem">Pay Securely with Razorpay</p>
-          <p style="font-size:.8rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Accepts <strong>Cards, UPI, Net Banking, Wallets</strong> &amp; more. 100% secure &amp; instant confirmation.</p>
-          <div style="display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin-bottom:.9rem">
-            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">💳 Debit/Credit Card</span>
-            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">📱 UPI</span>
-            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">🏦 Net Banking</span>
-            <span style="background:white;border:1px solid #ddd;border-radius:6px;padding:.3rem .7rem;font-size:.72rem;font-weight:600;color:#555">👛 Wallets</span>
-          </div>
-          <div style="font-size:.74rem;color:#888;margin-top:.5rem">🔒 256-bit SSL encrypted · Powered by Razorpay</div>
-        </div>
-      </div>
-      <!-- BANK — disabled, using Razorpay only -->
-      <div id="bankSection" style="display:none!important;visibility:hidden;pointer-events:none">
-        <div class="upi-info-block" style="text-align:left">
-          <p style="font-size:.82rem;font-weight:600;color:var(--green);margin-bottom:.6rem">🏦 Bank Transfer Details</p>
-          <p style="font-size:.82rem;color:var(--muted);line-height:1.9">
-            <strong>Account Name:</strong> Abraham Benny Hin<br/>
-            <strong>Account Number:</strong> 42756475621<br/>
-            <strong>IFSC Code:</strong> SBIN0021869<br/>
-            <strong>Bank:</strong> State Bank of India<br/>
-            <strong>Branch:</strong> Kelambakkam
-          </p>
-          <p style="font-size:.75rem;color:var(--muted);margin-top:.6rem;padding-top:.6rem;border-top:1px solid rgba(0,0,0,.07)">Share screenshot on WhatsApp after transfer.</p>
-        </div>
-        <div class="form-group" style="margin-top:.8rem"><label>Bank Transaction Reference Number</label><input type="text" id="cBankRef" placeholder="e.g. SBIN123456789"/></div>
-      </div>
-      <!-- Payment confirmation notice (shown after UPI payment confirmed) -->
-      <div id="paymentConfirmedNotice" style="display:none;background:#d1e7dd;border:1px solid #badbcc;border-radius:8px;padding:.8rem 1rem;margin-top:.8rem;font-size:.84rem;color:#0f5132;font-weight:600;display:none;align-items:center;gap:.5rem">
+      <div id="razorpaySection" style="display:none"></div>
+      <div id="bankSection" style="display:none"></div>
+      <!-- Payment confirmation notice -->
+      <div id="paymentConfirmedNotice" style="display:none;background:#d1e7dd;border:1px solid #badbcc;border-radius:8px;padding:.8rem 1rem;margin-top:.8rem;font-size:.84rem;color:#0f5132;font-weight:600;align-items:center;gap:.5rem">
         ✅ Payment confirmed! Please click Place Order to complete.
       </div>
       <input type="hidden" id="cUPIRef" value=""/>
-      <button class="place-order-btn" onclick="placeOrder()" id="placeOrderBtn">🌿 Place Order</button>
+      <button class="place-order-btn" onclick="placeOrder()" id="placeOrderBtn" disabled>🔒 Place Order</button>
     </div>
   </div>
 </div>
@@ -1034,6 +998,8 @@ function updateUPIAmount(){
   const total=cartSubtotal()+(document.getElementById('cState')?.value==='TN'?0:DELIVERY_FEE);
   const el=document.getElementById('upiPayAmount');
   if(el) el.textContent=total;
+  const pill=document.getElementById('upiPayAmountPill');
+  if(pill) pill.textContent=total;
 }
 
 function selectUPIApp(appKey){
@@ -1067,11 +1033,15 @@ function proceedToPay(){
   document.getElementById('upiStep1').classList.remove('active');
   document.getElementById('upiStep2').classList.add('active');
   document.getElementById('awaitAmount').textContent='₹'+total;
+  const amtBtn=document.getElementById('awaitAmountBtn');
+  if(amtBtn) amtBtn.textContent=total;
   document.getElementById('awaitAppBadge').textContent=(meta.emoji||'📱')+' '+meta.name;
   document.getElementById('openAppName').textContent=meta.name;
   document.getElementById('awaitIcon').textContent=selectedUPIApp==='qr'?'📷':'📲';
   // Hide the open app button for QR flow
   document.getElementById('btnOpenApp').style.display=selectedUPIApp==='qr'?'none':'flex';
+  // Auto-open the app immediately
+  if(selectedUPIApp!=='qr') setTimeout(()=>openUPIApp(), 400);
 }
 
 function openUPIApp(){
@@ -1081,16 +1051,25 @@ function openUPIApp(){
   if(selectedUPIApp==='manual'){
     targetUPI=document.getElementById('manualUpiId').value.trim()||UPI_ID;
   }
-  if(meta&&meta.deeplink){
-    const link=meta.deeplink(targetUPI,total,UPI_NAME,'BAMOOBUSH Order');
-    window.location.href=link;
-    // Fallback: also try standard UPI intent after short delay
-    setTimeout(()=>{
-      const fallback=`upi://pay?pa=${targetUPI}&pn=${encodeURIComponent(UPI_NAME)}&am=${total}&cu=INR&tn=${encodeURIComponent('BAMOOBUSH Order')}`;
-      const a=document.createElement('a');a.href=fallback;document.body.appendChild(a);a.click();document.body.removeChild(a);
-    },800);
-  }
-  showToast(`Opening ${meta.name}…`);
+  if(!meta||!meta.deeplink) return;
+  const upiNote=encodeURIComponent('BAMOOBUSH Order');
+  const upiName=encodeURIComponent(UPI_NAME);
+  // Build standard UPI intent URL (works on Android to open specific app)
+  const intentBase=`upi://pay?pa=${targetUPI}&pn=${upiName}&am=${total}&cu=INR&tn=${upiNote}`;
+  // App-specific schemes for Android
+  const appSchemes={
+    gpay: `gpay://upi/pay?pa=${targetUPI}&pn=${upiName}&am=${total}&cu=INR&tn=${upiNote}`,
+    phonepe: `phonepe://pay?pa=${targetUPI}&pn=${upiName}&am=${total}&cu=INR&tn=${upiNote}`,
+    paytm: `paytmmp://upi/pay?pa=${targetUPI}&pn=${upiName}&am=${total}&cu=INR&tn=${upiNote}`,
+    bhim: intentBase,
+    amazonpay: intentBase,
+    manual: intentBase
+  };
+  const link = appSchemes[selectedUPIApp] || intentBase;
+  // Try app-specific scheme first, fallback to standard upi://
+  window.location.href = link;
+  setTimeout(()=>{ window.location.href = intentBase; }, 800);
+  showToast(`Opening ${meta.name} with ₹${total}…`);
 }
 
 function confirmPaymentDone(){
@@ -1232,15 +1211,16 @@ function openCheckout(){
   refreshCheckoutTotal();
   document.getElementById('checkoutTitle').textContent='Complete Your Order';
   document.getElementById('checkoutModal').classList.add('open');
-  // Only Razorpay available
-  document.getElementById('cPayment').value='razorpay';
-  document.getElementById('razorpaySection').style.display='block';
-  document.getElementById('upiSection').style.display='none';
-  document.getElementById('bankSection').style.display='none';
-  document.getElementById('placeOrderBtn').textContent='💳 Pay with Razorpay';
+  // UPI-only payment — show app picker
+  const rzpSec=document.getElementById('razorpaySection');
+  if(rzpSec) rzpSec.style.display='none';
+  document.getElementById('upiSection').style.display='block';
+  const bankSec=document.getElementById('bankSection');
+  if(bankSec) bankSec.style.display='none';
+  document.getElementById('placeOrderBtn').textContent='🔒 Place Order';
   // Reset UPI flow & gate place order button
   resetUPIFlow();
-  document.getElementById('placeOrderBtn').disabled=false;
+  document.getElementById('placeOrderBtn').disabled=true;
   const notice=document.getElementById('paymentConfirmedNotice');
   if(notice) notice.style.display='none';
   updateUPIAmount();
@@ -1262,10 +1242,9 @@ function placeOrder(){
     if(!ok)valid=false;
   });
   if(!valid)return;
-  const payMethod='razorpay';
-  // RAZORPAY FLOW — only payment method
-  launchRazorpay();
-  return;
+  const payMethod='upi';
+  const upiRef=document.getElementById('cUPIRef')?.value||'';
+  if(!upiRef){showToast('⚠️ Please complete your UPI payment and confirm it first.');return;}
   const btn=document.getElementById('placeOrderBtn');
   btn.disabled=true;btn.textContent='⏳ Processing...';
   const isTN=document.getElementById('cState').value==='TN';
@@ -1318,7 +1297,7 @@ function finalizePlaceOrder(payMethod, upiRef, bankRef, orderDataArg){
   let userOrders=[]; try{userOrders=JSON.parse(localStorage.getItem(userOrdersKey)||'[]');}catch(e){}
   userOrders.unshift(orderData);
   try{localStorage.setItem(userOrdersKey,JSON.stringify(userOrders));}catch(e){}
-  const rzpLabel=payMethod==='razorpay'?`\n💳 *Razorpay Payment ID:* ${upiRef}`:'';
+  const upiAppLabel=selectedUPIApp&&UPI_APP_META[selectedUPIApp]?UPI_APP_META[selectedUPIApp].name:'UPI';
   const wa_msg=encodeURIComponent(
     `🛒 *NEW ORDER — BAMOOBUSH*\n━━━━━━━━━━━━━━━━━━━\n`+
     `*Order ID:* ${orderData.id}\n*Date:* ${orderData.date}\n\n`+
@@ -1327,36 +1306,114 @@ function finalizePlaceOrder(payMethod, upiRef, bankRef, orderDataArg){
     `📧 *Email:* ${orderData.customer.email}\n\n`+
     `📍 *Delivery Address:*\n${orderData.customer.address}, ${orderData.customer.city} — ${orderData.customer.pin}\n${orderData.customer.state}\n\n`+
     `🛍 *Items:*\n${orderData.items.map(i=>`• ${i.name} × ${i.qty} = ₹${i.price*i.qty}`).join('\n')}\n\n`+
-    `💳 *Payment:* ${payMethod.toUpperCase()}`+rzpLabel+
-    (upiRef&&payMethod!=='razorpay'?`\n🔑 *UPI Ref:* ${upiRef}`:'')+(bankRef?`\n🔑 *Bank Ref:* ${bankRef}`:'')+
+    `💳 *Payment:* UPI (${upiAppLabel})`+
+    (upiRef?`\n🔑 *UPI Ref:* ${upiRef}`:'')+
     `\n🚚 *Delivery:* ${fee===0?'FREE (Tamil Nadu)':'₹'+fee+' (Outside TN)'}\n`+
     `\n💰 *TOTAL: ₹${orderData.total}*`
   );
-  const isRzp=payMethod==='razorpay';
+  const waUrl=`https://wa.me/${OWNER_WHATSAPP}?text=${wa_msg}`;
+
   setTimeout(()=>{
     cart=[];persistCart();updateCartUI();
-    document.getElementById('checkoutBody').innerHTML=`
-      <div class="success-block">
-        <div class="success-icon">${isRzp?'💳':'🌿'}</div>
-        <h3>${isRzp?'Payment Successful!':'Order Placed!'}</h3>
-        ${isRzp?`<p style="font-size:.78rem;background:#d1e7dd;color:#0f5132;border-radius:6px;padding:.5rem .8rem;margin-bottom:.6rem;font-weight:600">✅ Paid via Razorpay · ID: ${upiRef}</p>`:''}
-        <p style="font-weight:600;color:var(--green);margin-bottom:.4rem">Order ID: ${orderData.id}</p>
-        <p>Thank you, <strong>${orderData.customer.name}</strong>! Your order is confirmed.</p>
-        <p style="margin:1rem 0;padding:.8rem;background:var(--cream);border-radius:6px;font-size:.88rem">${orderData.customer.address}, ${orderData.customer.city} — ${orderData.customer.pin}</p>
-        <p>We'll contact you on <strong>${orderData.customer.phone}</strong> with delivery updates.</p>
-        <p style="font-size:.82rem;color:${fee===0?'#0f5132':'#856404'};margin-top:.4rem;font-weight:600">🚚 ${fee===0?'FREE Delivery — Tamil Nadu':'Delivery: ₹'+fee+' — Outside Tamil Nadu'}</p>
-        <button class="whatsapp-btn" onclick="window.open('https://wa.me/${OWNER_WHATSAPP}?text=${wa_msg}','_blank')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Send Order on WhatsApp to Seller
-        </button>
-        <p style="font-size:.72rem;color:var(--muted);margin-top:.3rem">Works with personal &amp; business WhatsApp</p>
-        <button class="btn-gold" onclick="closeCheckout()" style="margin-top:1rem;width:100%">Continue Shopping</button>
-      </div>`;
-    document.getElementById('checkoutTitle').textContent='Order Confirmed ✓';
-    showToast(isRzp?'🎉 Payment successful! Order confirmed.':'🎉 Order placed! Tap the WhatsApp button to confirm.');
-    btn.disabled=false;btn.textContent='🌿 Place Order';
-    setTimeout(()=>{if(/Mobi|Android/i.test(navigator.userAgent))window.open('https://wa.me/'+OWNER_WHATSAPP+'?text='+wa_msg,'_blank');},1500);
-  },isRzp?200:1200);
+
+    // Close the checkout modal
+    document.getElementById('checkoutModal').classList.remove('open');
+    btn.disabled=false;btn.textContent='🔒 Place Order';
+
+    // Show full-screen order success page
+    showOrderSuccessPage(orderData, fee, upiAppLabel, upiRef, waUrl);
+
+    // Auto-send WhatsApp to seller immediately
+    window.open(waUrl,'_blank');
+
+    showToast('🎉 Order placed! WhatsApp sent to seller.');
+  },1000);
+}
+
+function showOrderSuccessPage(orderData, fee, upiAppLabel, upiRef, waUrl){
+  // Remove any existing success page
+  document.getElementById('orderSuccessPage')?.remove();
+
+  const items = orderData.items.map(i=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 0;border-bottom:1px solid rgba(26,74,46,.08)">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--green)">${i.name}</div>
+        <div style="font-size:.78rem;color:var(--muted)">Qty: ${i.qty}</div>
+      </div>
+      <div style="font-weight:700;color:var(--green)">₹${i.price*i.qty}</div>
+    </div>`).join('');
+
+  const page = document.createElement('div');
+  page.id='orderSuccessPage';
+  page.style.cssText=`position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#0f2e1a 0%,#1a4a2e 60%,#1e3d25 100%);overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem 4rem;animation:fadeIn .5s ease`;
+
+  page.innerHTML=`
+    <div style="width:100%;max-width:520px">
+
+      <!-- Animated checkmark -->
+      <div style="text-align:center;padding:2.5rem 0 1.5rem">
+        <div style="width:90px;height:90px;background:rgba(184,146,42,.15);border:3px solid var(--gold-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;animation:pulse-icon 2s ease-in-out infinite">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d4a940" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h1 style="font-family:'Cormorant Garamond',serif;color:var(--cream);font-size:2.2rem;font-weight:700;margin-bottom:.4rem">Order Placed!</h1>
+        <p style="color:rgba(240,235,224,.6);font-size:.92rem;font-weight:300">Thank you, <strong style="color:var(--gold-light)">${orderData.customer.name}</strong> 🌿</p>
+      </div>
+
+      <!-- Order ID banner -->
+      <div style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.3);border-radius:10px;padding:.9rem 1.2rem;text-align:center;margin-bottom:1.2rem">
+        <div style="font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-light);margin-bottom:.25rem">Order ID</div>
+        <div style="font-family:monospace;font-size:1.15rem;font-weight:700;color:var(--cream);letter-spacing:.06em">${orderData.id}</div>
+        <div style="font-size:.75rem;color:rgba(240,235,224,.45);margin-top:.25rem">${orderData.date}</div>
+      </div>
+
+      <!-- Payment & delivery status -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.9rem 1rem;text-align:center">
+          <div style="font-size:1.4rem;margin-bottom:.3rem">✅</div>
+          <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,235,224,.45);margin-bottom:.2rem">Payment</div>
+          <div style="font-size:.85rem;font-weight:600;color:#6fcf97">${upiAppLabel}</div>
+          ${upiRef&&upiRef!=='PAID-NO-REF'?`<div style="font-size:.68rem;color:rgba(240,235,224,.35);font-family:monospace;margin-top:.2rem">${upiRef}</div>`:''}
+        </div>
+        <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.9rem 1rem;text-align:center">
+          <div style="font-size:1.4rem;margin-bottom:.3rem">🚚</div>
+          <div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,235,224,.45);margin-bottom:.2rem">Delivery</div>
+          <div style="font-size:.85rem;font-weight:600;color:${fee===0?'#6fcf97':'#f2c94c'}">${fee===0?'FREE':'₹'+fee}</div>
+          <div style="font-size:.7rem;color:rgba(240,235,224,.35);margin-top:.2rem">${fee===0?'Tamil Nadu':'Outside TN'}</div>
+        </div>
+      </div>
+
+      <!-- Items summary -->
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.2rem 1.3rem;margin-bottom:1.2rem">
+        <div style="font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,235,224,.45);margin-bottom:.7rem">Items Ordered</div>
+        ${items}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:.8rem;margin-top:.4rem">
+          <span style="font-size:.82rem;color:rgba(240,235,224,.55)">Total Paid</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-light)">₹${orderData.total}</span>
+        </div>
+      </div>
+
+      <!-- Delivery address -->
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.1rem 1.3rem;margin-bottom:1.5rem">
+        <div style="font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,235,224,.45);margin-bottom:.6rem">📍 Delivering To</div>
+        <div style="color:rgba(240,235,224,.8);font-size:.88rem;line-height:1.7">${orderData.customer.address},<br>${orderData.customer.city} — ${orderData.customer.pin}<br>${orderData.customer.state}</div>
+        <div style="margin-top:.6rem;font-size:.8rem;color:rgba(240,235,224,.5)">Updates will be sent to <strong style="color:rgba(240,235,224,.7)">${orderData.customer.phone}</strong></div>
+      </div>
+
+      <!-- WhatsApp re-send button (in case auto popup was blocked) -->
+      <button onclick="window.open('${waUrl}','_blank')" style="width:100%;background:#25D366;color:white;border:none;border-radius:12px;padding:1rem;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'Jost',sans-serif;display:flex;align-items:center;justify-content:center;gap:.7rem;margin-bottom:.8rem;box-shadow:0 4px 16px rgba(37,211,102,.3);transition:all .2s" onmouseover="this.style.background='#20bd5c'" onmouseout="this.style.background='#25D366'">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Resend Order to Seller on WhatsApp
+      </button>
+      <p style="text-align:center;font-size:.72rem;color:rgba(240,235,224,.3);margin-bottom:1.5rem">WhatsApp was sent automatically. Tap above if it didn't open.</p>
+
+      <!-- Continue shopping -->
+      <button onclick="document.getElementById('orderSuccessPage').remove()" style="width:100%;background:rgba(255,255,255,.08);color:rgba(240,235,224,.8);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:.95rem;font-size:.88rem;font-weight:500;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,.13)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+        ← Continue Shopping
+      </button>
+
+    </div>`;
+
+  document.body.appendChild(page);
 }
 
 // ══════════════════════════════════════════════
@@ -2082,12 +2139,12 @@ function bbGetReply(msg) {
 
   // Payment
   if (/pay|payment|upi|gpay|phonepe|paytm|bhim|bank|transfer|method/i.test(q)) {
-    return `💳 We accept payments via <strong>Razorpay</strong> — which supports Cards (Debit/Credit), UPI, Net Banking, and Wallets. 100% secure and instant confirmation at checkout!`;
+    return `💳 We accept payments via <strong>UPI</strong> — Google Pay, PhonePe, Paytm, BHIM, Amazon Pay, and more. Just select your preferred UPI app at checkout and the payment amount opens directly in the app!`;
   }
 
   // Order process
   if (/order|buy|purchase|how to|place|checkout|cart/i.test(q)) {
-    return `🛒 Ordering is easy!<br>1. Browse products and click <strong>Add to Cart</strong><br>2. Open cart and click <strong>Proceed to Checkout</strong><br>3. Fill in your details<br>4. Pay securely via <strong>Razorpay</strong> (Cards, UPI, Wallets, Net Banking) ✅<br><br>You'll get a WhatsApp confirmation from us!`;
+    return `🛒 Ordering is easy!<br>1. Browse products and click <strong>Add to Cart</strong><br>2. Open cart and click <strong>Proceed to Checkout</strong><br>3. Fill in your delivery details<br>4. Choose your UPI app (GPay, PhonePe, Paytm, BHIM…) — the amount opens directly in the app! ✅<br><br>You'll get a WhatsApp confirmation from us!`;
   }
 
   // Track order / order status
