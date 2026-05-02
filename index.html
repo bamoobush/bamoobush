@@ -1300,27 +1300,6 @@ function placeOrder(){
   // All other UPI apps → launch Razorpay
   launchRazorpayUPI();
 }
-  btn.disabled=true;btn.textContent='⏳ Processing...';
-  const isTN=document.getElementById('cState').value==='TN';
-  const fee=isTN?0:DELIVERY_FEE;
-  const sub=cartSubtotal();
-  const orderData={
-    id:'BB'+Date.now(), date:new Date().toLocaleDateString('en-IN'),
-    customer:{
-      name:document.getElementById('cName').value,
-      phone:document.getElementById('cPhone').value,
-      email:document.getElementById('cEmail').value,
-      address:document.getElementById('cAddress').value,
-      city:document.getElementById('cCity').value,
-      pin:document.getElementById('cPin').value,
-      state:isTN?'Tamil Nadu':document.getElementById('cState').options[document.getElementById('cState').selectedIndex].text
-    },
-    payment:payMethod, upiRef, bankRef,
-    items:cart.map(i=>{return{name:i.name,qty:i.qty,price:i.price,img:i.img||'',sub:i.sub||''}}),
-    subtotal:sub, deliveryFee:fee, total:sub+fee, status:'pending'
-  };
-  finalizePlaceOrder(payMethod, upiRef, bankRef, orderData);
-}
 
 function finalizePlaceOrder(payMethod, upiRef, bankRef, orderDataArg){
   const btn=document.getElementById('placeOrderBtn');
@@ -2239,17 +2218,6 @@ function bbGetReply(msg) {
   // Default fallback
   return `🌿 I'm not sure about that, but our team can help! Reach us on WhatsApp at <strong>+91 73582 13719</strong> or email <strong>bamoobush@gmail.com</strong> and we'll get back to you quickly!`;
 }
-</script>
-  <!-- your existing HTML content -->
-
-<script>
-    // Your existing functions here...
-
-    function init() {
-        renderProducts();
-    }
-
-    document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
